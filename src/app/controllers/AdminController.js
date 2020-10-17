@@ -22,7 +22,7 @@ class AdminController {
          console.log('wrote all data to file');
       });
       writeStream.end();
-      res.json({"message":"Upload Ok !!!"});
+      //res.json({"message":"Upload Ok !!!"});
   } 
 }
 
