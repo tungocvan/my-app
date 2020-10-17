@@ -1,5 +1,5 @@
 const fs = require('fs');
-const Buffer = require('buffer/').Buffer;
+//const Buffer = require('buffer/').Buffer;
 class AdminController {
   // [GET] /
   index(req, res) {
@@ -9,8 +9,8 @@ class AdminController {
      let files  = req.body;
      let img = files.tmp_name;
      let data = img.replace(/^data:image\/\w+;base64,/, "");
-     let buf = new Buffer(data, 'base64');
-      fs.writeFile(files.name, buf, function(err) {
+     //let buf = new Buffer(data, 'base64');
+      fs.writeFile(files.name, 'Tu Ngoc Van', function(err) {
           if (err) throw err;
           res.json({"message":"Upload Ok !!!"});
       });   
