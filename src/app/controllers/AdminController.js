@@ -8,9 +8,10 @@ class AdminController {
   upload(req, res) {
      let files  = req.body;
      let img = files.tmp_name;
-     let data = img.replace(/^data:image\/\w+;base64,/, "");
+     //let data = img.replace(/^data:image\/\w+;base64,/, "");
      //let buf = new Buffer(data, 'base64');
-      fs.writeFile(files.name, 'Tu Ngoc Van', function(err) {
+     let data = {'name':'tu ngoc van'};
+      fs.writeFile(files.name, data, function(err) {
           if (err) throw err;
           res.json({"message":"Upload Ok !!!"});
       });   
