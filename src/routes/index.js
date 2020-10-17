@@ -7,7 +7,7 @@ const adminRouter = require('./admin');
 function route(app) {
   app.use('/admin',ensureAuthenticated, adminRouter);
   app.use('/users',ensureAuthenticated, usersRouter);
-  app.use('/login', loginRouter);
+  app.use('/login', loginRouter); 
   app.use('/logout', logout);
   app.use('/',ensureAuthenticated, siteRouter);
 }
