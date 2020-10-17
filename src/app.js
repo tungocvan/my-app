@@ -51,6 +51,7 @@ app.engine(
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'resources/views'));
 
+global.basedir = __dirname;
 // Routes init
 route(app);
 
