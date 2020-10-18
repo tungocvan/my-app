@@ -22,7 +22,7 @@ app.use(session({
   saveUninitialized: true, 
   secret: 'somesecret', 
   cookie: { 
-    maxAge: 1000 * 60 * 5 //đơn vị là milisecond 5 phút
+    //maxAge: 1000 * 60 * 5 //đơn vị là milisecond 5 phút
   }
 }));
 app.use(passport.initialize()); 
