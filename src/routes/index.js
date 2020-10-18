@@ -1,14 +1,25 @@
-const newsRouter = require('./news');
+const cartRouter = require('./cart');
 const siteRouter = require('./site');
 const usersRouter = require('./users');
 const loginRouter = require('./login');
 const adminRouter = require('./admin');
+const checkoutRouter = require('./checkout');
+const contactRouter = require('./contact');
+const loginRegisterRouter = require('./loginRegister');
+const productDetailsRouter = require('./productDetails');
+const wishlistRouter = require('./wishlist');
 
 function route(app) {
   app.use('/admin',ensureAuthenticated, adminRouter);
   app.use('/users',ensureAuthenticated, usersRouter);
   app.use('/login', loginRouter); 
   app.use('/logout', logout);
+  app.use('/cart', cartRouter);
+  app.use('/contact', contactRouter);
+  app.use('/checkout', checkoutRouter);
+  app.use('/loginRegister', loginRegisterRouter);
+  app.use('/productDetails', productDetailsRouter);
+  app.use('/wishlist', wishlistRouter);
   app.use('/', siteRouter);
 }
 
