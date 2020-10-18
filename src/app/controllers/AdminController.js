@@ -22,17 +22,17 @@ class AdminController {
     //  if (!fs.existsSync(des)) {
     //         fs.mkdirSync(des, 0744);        
     //   }
-      // fs.writeFile(t, buf, (err) => {
-      //     if (err) throw err;
-      //     res.json({"message":"Upload Ok !!!"});        
-      // }); 
+    fs.writeFile(t, buf, (err) => {
+          if (err) throw err;
+          res.json({"message":"Upload Ok !!!"});        
+    }); 
       // let writeStream = fs.createWriteStream(t); 
       // writeStream.write(data, 'base64');
       // writeStream.on('finish', () => {
       //    console.log('wrote all data to file');
       // });
       // writeStream.end();
-      res.json({"message":t});
+    //  res.json({"message":t});
   } 
   
 }
