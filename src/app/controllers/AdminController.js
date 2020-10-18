@@ -16,13 +16,13 @@ class AdminController {
     //       if (err) throw err;
     //       res.json({"message":"Upload Ok !!!"});
     //   }); 
-      let writeStream = fs.createWriteStream(t); 
-      writeStream.write(data, 'base64');
-      writeStream.on('finish', () => {
-         console.log('wrote all data to file');
-      });
-      writeStream.end();
-      //res.json({"message":"Upload Ok !!!"});
+      // let writeStream = fs.createWriteStream(t); 
+      // writeStream.write(data, 'base64');
+      // writeStream.on('finish', () => {
+      //    console.log('wrote all data to file');
+      // });
+      // writeStream.end();
+      res.json({"message":t});
   } 
 }
 
