@@ -13,12 +13,12 @@ class AdminController {
      let img = files.tmp_name;
      let data = img.replace(/^data:image\/\w+;base64,/, "");
      let buf = new Buffer(data, 'base64');     
-     fs.mkdir(path.join(__dirname, 'test'), (err) => { 
-      if (err) { 
-          return console.error(err); 
-      } 
-      console.log('Directory created successfully!'); 
-      }); 
+    //  fs.mkdir(path.join(__dirname, 'test'), (err) => { 
+    //   if (err) { 
+    //       return console.error(err); 
+    //   } 
+    //   console.log('Directory created successfully!'); 
+    //   }); 
     //  if (!fs.existsSync(des)) {
     //         fs.mkdirSync(des, 0744);        
     //   }
@@ -32,7 +32,7 @@ class AdminController {
       //    console.log('wrote all data to file');
       // });
       // writeStream.end();
-      //res.json({"message":t});
+      res.json({"message":t});
   } 
   
 }
