@@ -1,7 +1,7 @@
 class LoginRegisterController {
   // [GET] /
   index(req, res) {
-    res.render('LoginRegister',{ layout : 'layoutWebsite'});
+    res.render('loginRegister',{ layout : 'layoutWebsite'});
   } 
 
 }
