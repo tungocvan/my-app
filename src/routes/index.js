@@ -11,13 +11,13 @@ const wishlistRouter = require('./wishlist');
 
 function route(app) {
   app.use('/admin',ensureAuthenticated, adminRouter);
+  app.use('/register', loginRegisterRouter);
   app.use('/users',ensureAuthenticated, usersRouter);
   app.use('/login', loginRouter); 
   app.use('/logout', logout);
   app.use('/cart', cartRouter);
   app.use('/contact', contactRouter);
-  app.use('/checkout', checkoutRouter);
-  app.use('/loginRegister', loginRegisterRouter);
+  app.use('/checkout', checkoutRouter);  
   app.use('/productDetails', productDetailsRouter);
   app.use('/wishlist', wishlistRouter);
   app.use('/', siteRouter);
