@@ -1,8 +1,9 @@
 <h1>ADMIN PAGE</h1>
 <input type="file" name="name"  onchange="fileupload(this)"/>
 <div id="preview"></div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
-    
+        
         function fileupload(input){
             console.log('fileupload():',input.files[0]);
             var dirDes = "uploads/"; 
@@ -16,28 +17,19 @@
                     'tmp_name'         : reader.result,
                     'size'             : data.size,
                     'type'             : data.type,
-                    'des'              : dirDes
+                    'des'                  : dirDes
                 };
                 var preview = document.querySelector('#preview');      
                 var image = new Image();
                 image.height = 50;
                 image.title = data.name;
                 image.src = reader.result;
-                preview.appendChild(image);
-                (async () => {
-                    const rawResponse = await fetch('/admin/upload', {
-                        method: 'POST',
-                        headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(newData)
-                    });
-                    const content = await rawResponse.json();
-                    fileName = content.data;
-                    console.log('content:',fileName);    
-                        
-                })();
+                preview.appendChild(image);             
+
+                $.post("/admin/upload",newData,
+                    function(data,status){
+                        console.log("Data: " + data + "\nStatus: " + status);
+                });
             }
             reader.onerror = function() {
                 console.log('error:',reader.error);
