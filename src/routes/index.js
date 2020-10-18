@@ -9,7 +9,7 @@ function route(app) {
   app.use('/users',ensureAuthenticated, usersRouter);
   app.use('/login', loginRouter); 
   app.use('/logout', logout);
-  app.use('/',ensureAuthenticated, siteRouter);
+  app.use('/', siteRouter);
 }
 
 function ensureAuthenticated(req, res, next) {
