@@ -12,7 +12,7 @@ class AdminController {
      let img = files.tmp_name;
      let data = img.replace(/^data:image\/\w+;base64,/, "");
      let buf = new Buffer(data, 'base64');     
-      fs.writeFile(t, buf, function(err) {
+      fs.writeFile(t, buf, (err) => {
           if (err) throw err;
           res.json({"message":"Upload Ok !!!"});
       }); 
