@@ -11,18 +11,18 @@ class AdminController {
      let t = global.basedir + '/'+name;
      let img = files.tmp_name;
      let data = img.replace(/^data:image\/\w+;base64,/, "");
-    //  let buf = new Buffer(data, 'base64');     
-    //   fs.writeFile(t, buf, function(err) {
-    //       if (err) throw err;
-    //       res.json({"message":"Upload Ok !!!"});
-    //   }); 
-      let writeStream = fs.createWriteStream(t); 
-      writeStream.write(data, 'base64');
-      writeStream.on('finish', () => {
-         console.log('wrote all data to file');
-      });
-      writeStream.end();
-      res.json({"message":t});
+     let buf = new Buffer(data, 'base64');     
+      fs.writeFile(t, buf, function(err) {
+          if (err) throw err;
+          res.json({"message":"Upload Ok !!!"});
+      }); 
+      // let writeStream = fs.createWriteStream(t); 
+      // writeStream.write(data, 'base64');
+      // writeStream.on('finish', () => {
+      //    console.log('wrote all data to file');
+      // });
+      // writeStream.end();
+      // res.json({"message":t});
   } 
 }
 
