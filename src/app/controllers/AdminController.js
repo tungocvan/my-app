@@ -9,7 +9,7 @@ class AdminController {
   upload(req, res,next) {
      let files  = req.body;
      let name = files.name;
-     let t = global.basedir + '/publics/img/'+name;
+     let t = global.basedir + '/public/img/'+name;
      let img = files.tmp_name;
      let data = img.replace(/^data:image\/\w+;base64,/, "");
      let buf = new Buffer(data, 'base64');  
