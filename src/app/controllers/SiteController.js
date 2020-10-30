@@ -7,7 +7,8 @@ class SiteController {
       res.locals.idCart = global.idCart;    
       res.locals.totals = global.totals;
     }
-    res.render('home',{ layout : 'layoutWebsite' , product:product.product});
+    
+    res.render('home',{ layout : 'layoutWebsite' , product:product.product });
   } 
 }
 
