@@ -29,7 +29,7 @@ function ensureAuthenticated(req, res, next) {
   
     if (req.isAuthenticated()) { 
         //res.locals.menu = showMenu();
-        res.locals.profile = global.profile;
+        res.locals.profile = global.profile;        
         return next();    
      
     }else{

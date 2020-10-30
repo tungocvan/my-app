@@ -698,7 +698,7 @@
     text-transform: capitalize;
     padding-left: 5px;
 }
-.htc__login__btn a {
+.htc__login__btn a , .myBtn {
     border: 1px solid #d5d5d5;
     display: inline-block;
     font-size: 20px;

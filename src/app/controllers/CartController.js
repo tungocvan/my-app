@@ -9,7 +9,7 @@ class CartController {
       let items = product.productById(id);  
       if(global.idCart !== undefined){
         let find = global.idCart.findIndex(value => value.id == id);
-        console.log('find:',find);
+        //console.log('find:',find);
         if(find === -1){
             items.quantity = 1 ;
             items.total = items.salePrice;
@@ -28,7 +28,7 @@ class CartController {
         global.totals = items.total;
       }
     }
-    
+    res.locals.idCart = global.idCart; 
     res.render('cart',{ layout : 'layoutWebsite',product: global.idCart , totals:global.totals});
   } 
   
@@ -38,6 +38,7 @@ class CartController {
     if(find !==-1){
       global.totals = global.totals - global.idCart[find].total;
       global.idCart.splice(find,1);  
+      res.locals.idCart = global.idCart;
     }
     if(global.totals == 0) res.redirect('/');
     // res.render('cart',{ layout : 'layoutWebsite',product: global.idCart , totals:global.totals});
@@ -45,7 +46,7 @@ class CartController {
   }
 
   updateQuantity(req, res){
-     console.log('update id sl:',req.body);
+     //console.log('update id sl:',req.body);
      let id = parseInt(req.body.id);
      let sl = parseInt(req.body.sl);
      let find = global.idCart.findIndex(value => value.id == id);
@@ -53,6 +54,8 @@ class CartController {
      global.totals = global.totals - global.idCart[find].total;
      global.idCart[find].total = sl * global.idCart[find].salePrice;
      global.totals = global.totals + global.idCart[find].total; 
+     res.locals.idCart = global.idCart;
+     
      res.render('cart',{ layout : 'layoutWebsite',product: global.idCart , totals:global.totals});
   }
 }

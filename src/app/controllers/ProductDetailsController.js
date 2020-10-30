@@ -4,7 +4,12 @@ class productDetailsController {
   index(req, res) {
     let id = req.params['id'];    
     let items = product.productById(id);
-    let albumImg = items.albumImg.split(';');     
+    let albumImg = items.albumImg.split(';');  
+    if(global.idCart){
+       res.locals.idCart = global.idCart;    
+       res.locals.totals = global.totals;
+    }   
+    
     res.render('productDetails',{ layout : 'layoutWebsite' , product:items , albumImg});
   } 
 
