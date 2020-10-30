@@ -1,11 +1,11 @@
-const modelUser = require('../models/User');
-const {mutileMongooseToObject , mongooseToObject} = require('./mongoose');
+const product = require('../libs/myProduct');
 class SiteController {
   // [GET] /
   index(req, res) {
-    res.render('home',{ layout : 'layoutWebsite'});
+    console.log('product:',product);    
+    res.render('home',{ layout : 'layoutWebsite' , product:product.product});
   } 
-
 }
 
 module.exports = new SiteController();
+ 

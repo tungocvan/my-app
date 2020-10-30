@@ -1,10 +1,20 @@
 const fs = require('fs');
 const Buffer = require('buffer/').Buffer;
 const path = require('path'); 
+const menu = require('../libs/myMenu');
 class AdminController {
   // [GET] /
   index(req, res) {
-    res.render('admin',{ layout : 'layoutAdmin'});
+     res.render('admin/admin',{ layout : 'layoutAdmin'});
+  } 
+  menu(req, res) {
+      //console.log('menu:',menu.menu);    
+      let t = global.basedir + '/public/azshopweb/menu/menuTop.json';
+      fs.writeFile(t,JSON.stringify({"menu":menu.menu}), (err) => {
+        if (err) throw err;
+        res.render('admin/menu',{ layout : 'layoutAdmin'});        
+      }); 
+      
   } 
   upload(req, res,next) {
      let files  = req.body;

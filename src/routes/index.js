@@ -10,17 +10,17 @@ const productDetailsRouter = require('./productDetails');
 const wishlistRouter = require('./wishlist');
 
 function route(app) {
-  app.use('/admin',ensureAuthenticated, adminRouter);
-  app.use('/register', loginRegisterRouter);
+  app.use('/admin', adminRouter);
+  app.use('/register',showMenu, loginRegisterRouter);
   app.use('/users',ensureAuthenticated, usersRouter);
   app.use('/login', loginRouter); 
   app.use('/logout', logout);
-  app.use('/cart', cartRouter);
-  app.use('/contact', contactRouter);
-  app.use('/checkout', checkoutRouter);  
-  app.use('/productDetails', productDetailsRouter);
-  app.use('/wishlist', wishlistRouter);
-  app.use('/', siteRouter);
+  app.use('/cart',showMenu, cartRouter);
+  app.use('/contact',showMenu, contactRouter);
+  app.use('/checkout',showMenu, checkoutRouter);  
+  app.use('/productDetails',showMenu, productDetailsRouter);
+  app.use('/wishlist',showMenu, wishlistRouter);
+  app.use('/',showMenu, siteRouter);
 }
 
 function ensureAuthenticated(req, res, next) {
@@ -28,7 +28,7 @@ function ensureAuthenticated(req, res, next) {
   // truyền biến qua router
   
     if (req.isAuthenticated()) { 
-       // res.locals.isAdmin = true;
+        //res.locals.menu = showMenu();
         res.locals.profile = global.profile;
         return next();    
      
@@ -43,6 +43,17 @@ function ensureAuthenticated(req, res, next) {
 function logout(req, res){
   req.logout();
   res.redirect('/');
+}
+
+function showMenu(req, res, next){
+  const fs = require('fs'); 
+  let t =  global.basedir +  '/public/azshopweb/menu/menuTop.json';
+  fs.readFile(t, function read(err, data) {
+     if (err)   throw err;
+     var items = JSON.parse(data); 
+     res.locals.menu =  items.menu; 
+     return next();   
+  });
 }
 
 module.exports = route;

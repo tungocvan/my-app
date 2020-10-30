@@ -46,6 +46,7 @@ app.engine(
   'hbs',
   handlebars({
     extname: '.hbs',
+    helpers : require('./app/helpers/handlebars')
   }),
 );
 app.set('view engine', 'hbs');

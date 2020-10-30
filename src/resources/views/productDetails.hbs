@@ -6,62 +6,44 @@
                 <div class="product__details__container">
                     <div class="product__big__images">
                         <div class="portfolio-full-image tab-content">
-                            <div role="tabpanel" class="tab-pane fade show active product-video-position" id="img-tab-5">
-                                <img src="/azshopweb/images/product-details/big-img/4.jpg" alt="full-image">
+                            {{#each albumImg}} 
+                            {{#ifCond @index "==" 0 }}                           
+                            <div role="tabpanel" class="tab-pane fade show active product-video-position" id="img-tab-{{@index}}">
+                                <img src="/azshopweb/images/product/{{this}}" alt="full-image">
                                 <div class="product-video">
                                     <a class="video-popup" href="https://www.youtube.com/watch?v=cDDWvj_q-o8">
                                         <i class="zmdi zmdi-videocam"></i> View Video
                                     </a>
                                 </div>
                             </div>
-                            <div role="tabpanel" class="tab-pane fade product-video-position" id="img-tab-6">
-                                <img src="/azshopweb/images/product-details/big-img/6.jpg" alt="full-image">
+                            {{else}}
+                            <div role="tabpanel" class="tab-pane fade product-video-position" id="img-tab-{{@index}}">
+                                <img src="/azshopweb/images/product/{{this}}" alt="full-image">
                                 <div class="product-video">
                                     <a class="video-popup" href="https://www.youtube.com/watch?v=cDDWvj_q-o8">
                                         <i class="zmdi zmdi-videocam"></i> View Video
                                     </a>
                                 </div>
                             </div>
-                            <div role="tabpanel" class="tab-pane fade product-video-position" id="img-tab-7">
-                                <img src="/azshopweb/images/product-details/big-img/5.jpg" alt="full-image">
-                                <div class="product-video">
-                                    <a class="video-popup" href="https://www.youtube.com/watch?v=cDDWvj_q-o8">
-                                        <i class="zmdi zmdi-videocam"></i> View Video
-                                    </a>
-                                </div>
-                            </div>
-                            <div role="tabpanel" class="tab-pane fade product-video-position" id="img-tab-8">
-                                <img src="/azshopweb/images/product-details/big-img/6.jpg" alt="full-image">
-                                <div class="product-video">
-                                    <a class="video-popup" href="https://www.youtube.com/watch?v=cDDWvj_q-o8">
-                                        <i class="zmdi zmdi-videocam"></i> View Video
-                                    </a>
-                                </div>
-                            </div>
+                            {{/ifCond}}
+                            {{/each}} 
                         </div>
                     </div>
                     <!-- Start Small images -->
                     <ul class="product__small__images nav" role="tablist">
+                        {{#each albumImg}}
                         <li role="presentation" class="pot-small-img ">
-                            <a class="active" href="#img-tab-5" role="tab" data-toggle="tab">
-                                <img src="/azshopweb/images/product-details/small-img/1.jpg" alt="small-image">
+                            {{#ifCond @index "==" 0 }}
+                            <a class="active" href="#img-tab-{{@index}}" role="tab" data-toggle="tab">
+                                <img src="/azshopweb/images/product/{{this}}" alt="small-image">
                             </a>
-                        </li>
-                        <li role="presentation" class="pot-small-img">
-                            <a href="#img-tab-6" role="tab" data-toggle="tab">
-                                <img src="/azshopweb/images/product-details/small-img/2.jpg" alt="small-image">
+                            {{else}}
+                            <a  href="#img-tab-{{@index}}" role="tab" data-toggle="tab">
+                                <img src="/azshopweb/images/product/{{this}}" alt="small-image">
                             </a>
+                            {{/ifCond}}
                         </li>
-                        <li role="presentation" class="pot-small-img">
-                            <a href="#img-tab-7" role="tab" data-toggle="tab">
-                                <img src="/azshopweb/images/product-details/small-img/3.jpg" alt="small-image">
-                            </a>
-                        </li>
-                        <li role="presentation" class="pot-small-img">
-                            <a href="#img-tab-8" role="tab" data-toggle="tab">
-                                <img src="/azshopweb/images/product-details/small-img/2.jpg" alt="small-image">
-                            </a>
-                        </li>
+                       {{/each}} 
                     </ul>
                     <!-- End Small images -->
                 </div>
@@ -69,7 +51,7 @@
             <div class="col-lg-5 col-xl-5 col-md-12 col-12 smt-30 xmt-30">
                 <div class="htc__product__details__inner">
                     <div class="pro__detl__title">
-                        <h2>Black Clock</h2>
+                        <h2>{{product.title}}</h2>
                     </div>
                     <div class="pro__dtl__rating">
                         <ul class="pro__rating">
@@ -82,11 +64,11 @@
                         <span class="rat__qun">(Based on 0 Ratings)</span>
                     </div>
                     <div class="pro__details">
-                        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit, sed do eiusmod temf incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, nostr exercitation ullamco laboris nisi ut aliquip ex ea. </p>
+                        {{{product.content}}}
                     </div>
                     <ul class="pro__dtl__prize">
-                        <li class="old__prize">$15.21</li>
-                        <li>$10.00</li>
+                        <li class="old__prize">{{product.price}}</li>
+                        <li>{{product.salePrice}}</li>
                     </ul>
                     <div class="pro__dtl__color">
                         <h2 class="title__5">Choose Colour</h2>
