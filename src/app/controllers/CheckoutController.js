@@ -1,3 +1,4 @@
+const fs = require('fs');
 class CheckoutController {
   // [GET] /
   index(req, res) {
@@ -14,8 +15,24 @@ class CheckoutController {
     if(global.idCart){
       req.body.idCart = global.idCart;    
       req.body.totals = global.totals;
-    } 
-    res.json(req.body);
+    }     
+    let date = new Date();
+    req.body.date = date.toString();
+    let t = global.basedir + '/public/json/dataDonHang.json'; 
+    fs.readFile(t, (err, data) => {
+      if (err) throw err;
+       let dataDh = JSON.parse(data);
+       let items = dataDh.donhang;
+       items.push(req.body);       
+       fs.writeFile(t,JSON.stringify({"donhang":items}), (err) => {
+          if (err) throw err;
+          global.idCart = [];
+          global.totals = 0;
+          return res.redirect('/');        
+       }); 
+
+    });
+        
   } 
  
 }

@@ -40,12 +40,12 @@ class CartController {
       global.idCart.splice(find,1);  
       res.locals.idCart = global.idCart;
     }
-    if(global.totals == 0) res.redirect('/');
+    if(global.totals == 0) return res.redirect('/');
     // res.render('cart',{ layout : 'layoutWebsite',product: global.idCart , totals:global.totals});
     res.redirect('/cart');
   }
 
-  updateQuantity(req, res){
+  updateQuantity(req, res){;
      //console.log('update id sl:',req.body);
      let id = parseInt(req.body.id);
      let sl = parseInt(req.body.sl);
