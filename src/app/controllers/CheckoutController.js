@@ -18,6 +18,7 @@ class CheckoutController {
     }     
     let date = new Date();
     req.body.date = date.toString();
+    req.body.status = "Chờ xác nhận đơn hàng."
     let t = global.basedir + '/public/json/dataDonHang.json'; 
     fs.readFile(t, (err, data) => {
       if (err) throw err;

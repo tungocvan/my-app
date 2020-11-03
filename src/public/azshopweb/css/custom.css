@@ -9,3 +9,11 @@
 /* ----------------------------------------------------
 	You can put your custom css code here: 
 -------------------------------------------------------*/
+
+ul.subMenu {
+    margin-left: 25px;
+    display: none;
+}
+.categore-menu li:hover .subMenu{
+  display:block;
+}

@@ -27,7 +27,17 @@
             <div class="blog-details-left-sidebar mrg-blog">
                 <div class="blog-details-top">
                     <div class="our-reply-form-area mt--20">
-                        <h2 class="section-title-2">LEAVE A REPLY</h2>
+                        {{#if product}}
+                         <h2 class="section-title-2">PRODUCT</h2>
+                         {{> admin/product}}
+                        {{/if}}
+                        {{#if createProduct}}
+                         <h2 class="section-title-2">createProduct</h2>
+                         {{> admin/createProduct}}
+                        {{/if}}
+                        {{#if createCategory}}
+                         <h2 class="section-title-2">createCategory</h2>
+                        {{/if}}
                     </div>
                 </div>
             </div>

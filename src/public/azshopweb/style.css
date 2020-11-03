@@ -3788,7 +3788,7 @@ a.shipping-calculator-button:hover {
 .payment-menu li:hover {
     border: 1px solid #ff4136;
 }
-.single-checkout-box select {
+.single-checkout-box select ,.myDate{
     -moz-appearance: none;
     -webkit-appearance: none;
     -o-appearance: none;

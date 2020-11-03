@@ -16,10 +16,27 @@ class AdminController {
       }); 
       
   } 
+  product(req, res) {
+  
+      switch (req.params.id) {
+        
+        case 'createProduct':          
+        res.render('admin/product',{ layout : 'layoutAdmin', createProduct:true , summernote:true});  
+        break;
+        case 'createCategory':
+        res.render('admin/product',{ layout : 'layoutAdmin', createCategory:true});
+        break;
+        default:
+        res.render('admin/product',{ layout : 'layoutAdmin' , product:true});  
+        break;
+      }
+      
+      
+  } 
   upload(req, res,next) {
      let files  = req.body;
-     let name = files.name;
-     let t = global.basedir + '/public/img/'+name;
+     let name = files.name;  
+     let t = global.basedir + files.des + name;
      let img = files.tmp_name;
      let data = img.replace(/^data:image\/\w+;base64,/, "");
      let buf = new Buffer(data, 'base64');  
@@ -29,6 +46,37 @@ class AdminController {
      }); 
    
   } 
+  updateProduct(req, res) {
+     //res.json(req.body);  
+     let items = [];
+     let t = global.basedir + '/public/json/product.json';
+     if (fs.existsSync(t)) { 
+      // do something 
+        fs.readFile(t, (err, data) => {
+          if (err) throw err;
+          let product = JSON.parse(data);
+          items = product.data;
+          // tim max id
+          let idArray = items.map((item)=> {
+            return item.id;
+          })
+          let idMax = Math.max(...idArray);
+          req.body.id = parseInt(idMax) + 1;           
+          items.push(req.body);
+          fs.writeFile(t,JSON.stringify({"data":items}), (err) => {
+            if (err) throw err;
+            res.redirect('/admin/product');       
+          }); 
+          })      
+     }else{
+      req.body.id = 1;       
+      items.push(req.body); 
+      fs.writeFile(t,JSON.stringify({"data":items}), (err) => {
+        if (err) throw err;
+        res.redirect('/admin/product');       
+      });
+     }     
+  }
   
 }
 
