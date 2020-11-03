@@ -1,4 +1,4 @@
-const fs = require('fs').promises;
+const fs = require('fs');
 var items = [];
 var productArray = [
     {"id":1,"title":"Simple Black Clock","price":16,"salePrice":10,"img":"/azshopweb/images/product/1.png","albumImg":"1.png;2.png;3.png;4.png","content":"<p>Lorem ipsum dolor sit amet consectetur adipisicing elit, sed do eiusmod temf incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, nostr exercitation ullamco laboris nisi ut aliquip ex ea</p>"},
@@ -14,18 +14,18 @@ var productArray = [
 function productById(id) {
     return productArray.find(value => value.id == id);
 }
-async function getProduct() {
-    let t =  './src/public/json/product.json';
-    let dataProduct = await fs.readFile(t,'utf8', (err, data) => {
-        if (err) throw err;
-        let product = JSON.parse(data);
-        return product.data;                
-     }) 
-     return dataProduct;
-}   
+// async function getProduct() {
+//     let t =  './src/public/json/product.json';
+//     let dataProduct = await fs.readFile(t,'utf8', (err, data) => {
+//         if (err) throw err;
+//         let product = JSON.parse(data);
+//         return product.data;                
+//      }) 
+//      return dataProduct;
+// }   
 
 
 module.exports = {
-    product : getProduct(),
+  //  product : getProduct(),
     productById
 }
