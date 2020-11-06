@@ -1,4 +1,4 @@
-const product = require('../libs/myProduct');
+//const product = require('../libs/myProduct');
 class productDetailsController {
   // [GET] /
   index(req, res) {

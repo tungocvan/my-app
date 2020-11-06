@@ -11,20 +11,22 @@
             </tr>
         </thead>
         <tbody>
+            {{#each items}}
             <tr>
                 <td><input type="checkbox" style="width:15px;height:15px"/></td>
                 <td class="product-thumbnail">
-                    <a href="#"><img src="/azshopweb/images/product/4.png" alt="product img" /></a>
+                    <a href="#"><img src="/azshopweb/images/product/{{this.imgName}}" alt="product img" /></a>
                 </td>
-                <td class="product-name"><a href="#">iPhone 12</a></td>
-                <td class="product-price"><span class="amount">£165.00</span></td>
-                <td class="product-quantity">Điện Thoại</td>
+                <td class="product-name"><a href="{{this.id}}">{{this.title}}</a></td>
+                <td class="product-price"><span class="amount">{{this.price}}</span></td>
+                <td class="product-quantity">{{this.category}}</td>
                 <td class="product-subtotal">
-                    <a href="#">Delete | </a>
-                    <a href="#">Edit</a>
+                    <a href="/admin/productDelete/{{this.id}}">Delete | </a>
+                    <a href="/admin/updateProduct/{{this.id}}">Edit</a>
                 </td>
          
             </tr>
+            {{/each}}
         </tbody>
     </table>
 </div>
