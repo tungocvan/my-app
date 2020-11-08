@@ -13,21 +13,27 @@
                                 <div id="summernote"></div>
                                 <input type="text" name="description" id="description" value="{{item.description}}" hidden/>
                             </div>
-                            <div class="single-checkout-box select-option mt--40">                                
-                                <select style="width:30%" name="category">
+                            <div class="single-checkout-box select-option mt-4">                                
+                                <select style="width:30%" onchange="chooseCategory(this)">
                                     
                                     <option>Chuyên mục sản phẩm</option>
                                     {{#each myCategory}}     
-                                        {{#ifCond this.name "==" @root.item.category}}  
-                                            <option selected="selected" value="{{this.name}}">{{this.name}}</option> 
-                                        {{else}}
-                                            <option value="{{this.name}}">{{this.name}}</option> 
-                                        {{/ifCond}}                                 
+                                         <option value="{{this.name}}">{{this.name}}</option>                               
                                                                                                                
                                     {{/each}}       
                                                 
                                 </select>
-   
+                                <div id="itemCate" style="display:inline">
+                                    {{#each category}}
+                                    <span onclick="delCate(this,'{{this}}')" style="color:white;background-color:gray;padding:5px;margin-right:2px;cursor:pointer">{{this}} <i class="zmdi zmdi-close"></i></span>
+                                    {{/each}}
+                                </div>
+                            </div>
+                            <div id="category">
+                                <input name="category"  type="text" value="{{item.category}}" hidden>
+                            </div>
+                            <div class="single-checkout-box select-option mt-4">                                
+                              
                                 <select style="width:20%" name="dvt">
                                     <option>Đơn vị tính</option>
                                     {{#each myDvt}} 
@@ -81,6 +87,8 @@
 <script>
         var albumImg = [];
         let album = document.getElementById('imgAlbum').value;
+        var category = document.querySelector('#category input').value.split(',');
+        console.log('category:',category);
         if(album !=='') albumImg = album.split(',');
         //console.log('albumImg:',albumImg);
         var idImg = 0;
@@ -184,6 +192,24 @@
             };
             if (data) reader.readAsDataURL(data);
         }    
+
+        function chooseCategory(e){
+            if(category.indexOf(e.value) ===-1) {
+                category.push(e.value);
+                let strCate = category.toString();        
+                console.log('category:',category);
+                $('#itemCate').append(`<span onclick="delCate(this,'${e.value}')" style="color:white;background-color:gray;padding:5px;margin-right:2px;cursor:pointer">${e.value} <i class="zmdi zmdi-close"></i></span>`);    
+                $('#category').html(`<input name="category"  type="text" value="${strCate}" hidden> `)
+            }
+        }
+
+        function delCate(e,nameCate){
+            e.remove();
+            category.splice(category.indexOf(nameCate),1);
+            let strCate = category.toString();
+            $('#category').html(`<input name="category"  type="text" value="${strCate}" hidden> `)
+            console.log('xoa category:',category);
+        }
 
 </script>
 <script>

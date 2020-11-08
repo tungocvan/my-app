@@ -6,7 +6,7 @@
                 <div class="product__details__container">
                     <div class="product__big__images">
                         <div class="portfolio-full-image tab-content">
-                            {{#each albumImg}} 
+                            {{#each albumImg}}  
                             {{#ifCond @index "==" 0 }}                           
                             <div role="tabpanel" class="tab-pane fade show active product-video-position" id="img-tab-{{@index}}">
                                 <img src="/azshopweb/images/product/{{this}}" alt="full-image">
@@ -90,22 +90,23 @@
                         </ul>
                     </div>
                     <div class="product-action-wrap">
-                        <div class="prodict-statas"><span>Quantity :</span></div>
+                        
                         <div class="product-quantity">
-                            <form id='myform' method='POST' action='#'>
-                                <div class="product-quantity">
-                                    <div class="cart-plus-minus">
-                                        <input class="cart-plus-minus-box" type="text" name="qtybutton" value="02">
-                                    </div>
+                            <form id='myform' method='POST' action='/cart'>
+                                <div class="product-quantity">   
+                                    <div class="prodict-statas"><span>Quantity :</span>
+                                        <input style="width:45px;padding:5px" name="sl" id="quan-{{product.id}}"  type="number" value="1" onblur="changeQuantity({{product.id}})">                               
+                                    </div>                                 
+                                    <input type="text" name="id" value="{{product.id}}" hidden/>    
+                                </div> 
+                                <div class="pro__dtl__btn mt-2">
+                                    <input class="buy__now__btn" type="submit" value="Add cart" />
                                 </div>
+
                             </form>
                         </div>
                     </div>
-                    <ul class="pro__dtl__btn">
-                        <li class="buy__now__btn"><a href="#">buy now</a></li>
-                        <li><a href="#"><span class="ti-heart"></span></a></li>
-                        <li><a href="#"><span class="ti-email"></span></a></li>
-                    </ul>
+                    
                     <div class="pro__social__share">
                         <h2>Share :</h2>
                         <ul class="pro__soaial__link">
@@ -121,3 +122,17 @@
     </div>
 </section>
 <!-- End Product Details -->
+<script>
+    document.addEventListener('DOMContentLoaded',function(){        
+           
+        
+    })
+    function changeQuantity(id){
+        let sl = document.getElementById('quan-'+id).value; 
+        let newData = {
+            id:id,
+            sl:sl
+        }       
+        console.log('newData:',newData)
+    }
+</script>

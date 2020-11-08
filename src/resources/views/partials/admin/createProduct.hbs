@@ -13,20 +13,26 @@
                                 <div id="summernote"></div>
                                 <input type="text" name="description" id="description" hidden/>
                             </div>
-                            <div class="single-checkout-box select-option mt--40">                                
-                                <select style="width:30%" name="category">
+                            <div class="single-checkout-box select-option mt-4">                                
+                                <select style="width:30%"  onchange="chooseCategory(this)">
                                     <option>Chuyên mục sản phẩm</option>
                                     {{#each myCategory}}  
-                                    <option value="{{this.name}}">{{this.name}}</option> 
+                                    <option value="{{this.name}}">{{this.name}}</option>
                                      {{/each}}                     
                                 </select>
+                                 
+                                <div id="itemCate" style="display:inline"></div> 
+                                
+                            </div>
+                            <div id="category">                               
+                            </div>
+                            <div class="single-checkout-box select-option mt-4">
                                 <select style="width:20%" name="dvt">
                                     <option>Đơn vị tính</option>
                                     {{#each myDvt}}                    
                                     <option value="{{this}}">{{this}}</option> 
                                     {{/each}}                     
-                                </select>   
-                            
+                                </select>                               
                                 <input class="myDate" type="date"  name="date" value="{{strDate}}"  style="width:20%">                           
                             </div>
                             <h2 class="section-title-2">Ảnh đại diện</h2>                            
@@ -63,6 +69,7 @@
         var albumImg = [];
         var idImg = 0;
         var right = 0;
+        var category = [];
         function fileupload(input){
             console.log('fileupload():',input.files[0]);
             var dirDes = "/public/azshopweb/images/product/"; 
@@ -164,6 +171,24 @@
             };
             if (data) reader.readAsDataURL(data);
         }    
+
+        function chooseCategory(e){
+            if(category.indexOf(e.value) ===-1) {
+                category.push(e.value);
+                let strCate = category.toString();        
+                console.log('category:',category);
+                $('#itemCate').append(`<span onclick="delCate(this,'${e.value}')" style="color:white;background-color:gray;padding:5px;margin-right:2px;cursor:pointer">${e.value} <i class="zmdi zmdi-close"></i></span>`);    
+                $('#category').html(`<input name="category"  type="text" value="${strCate}" hidden> `)
+            }
+        }
+
+        function delCate(e,nameCate){
+            e.remove();
+            category.splice(category.indexOf(nameCate),1);
+            let strCate = category.toString();
+            $('#category').html(`<input name="category"  type="text" value="${strCate}" hidden> `)
+            console.log('xoa category:',category);
+        }
 
 </script>
 <script>

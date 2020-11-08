@@ -10,6 +10,7 @@ router.post('/upload', AdminController.upload);
 router.post('/product', AdminController.createProduct);
 router.post('/category/:id?', AdminController.createCategory);
 router.post('/updateProduct', AdminController.updateProductById);
+router.get('/copyProduct/:id?', AdminController.copyProduct);
 router.get('/menu', AdminController.menu);
 router.get('/product/:id?/:slug?', AdminController.product);
 router.get('/', AdminController.index);

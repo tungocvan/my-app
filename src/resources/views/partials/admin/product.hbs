@@ -3,6 +3,7 @@
         <thead>
             <tr>
                 <th><input type="checkbox"/></th>
+                <th class="product-id">Id</th>
                 <th class="product-thumbnail">Image</th>
                 <th class="product-name">Title</th>
                 <th class="product-price">Price</th>
@@ -14,6 +15,7 @@
             {{#each items}}
             <tr>
                 <td><input type="checkbox" style="width:15px;height:15px"/></td>
+                <td class="product-id">{{this.id}}</td>
                 <td class="product-thumbnail">
                     <a href="#"><img src="/azshopweb/images/product/{{this.imgName}}" alt="product img" /></a>
                 </td>
@@ -23,6 +25,7 @@
                 <td class="product-subtotal">
                     <a href="/admin/productDelete/{{this.id}}">Delete | </a>
                     <a href="/admin/updateProduct/{{this.id}}">Edit</a>
+                    <a href="/admin/copyProduct/{{this.id}}">Copy</a>
                 </td>
          
             </tr>

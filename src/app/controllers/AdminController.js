@@ -2,16 +2,19 @@ const fs = require('fs');
 const Buffer = require('buffer/').Buffer;
 const path = require('path'); 
 const menu = require('../libs/myMenu');
+const {readJson ,ChangeToSlug } = require('../libs/myFunction');
 
 
-function readJson(jsonFile) {
-    let myCategory = fs.readFileSync(jsonFile,{encoding:'utf8', flag:'r'}); 
-    let cate = JSON.parse(myCategory);
-    return cate.data;
-}            
+// function readJson(jsonFile) {
+//     let myCategory = fs.readFileSync(jsonFile,{encoding:'utf8', flag:'r'}); 
+//     let cate = JSON.parse(myCategory);
+//     return cate.data;
+// }            
 class AdminController {
   // [GET] /
   index(req, res) {
+    //console.log('slug:',ChangeToSlug('Từ-N-'));
+    
     global.myCategory = readJson(global.basedir + '/public/json/category.json'); 
     let myDvt  =  readJson(global.basedir + '/public/json/attrib.json');                 
     global.myDvt = myDvt.dvt;
@@ -73,11 +76,10 @@ class AdminController {
    
   } 
   createProduct(req, res) {
-     //res.json(req.body);  
+    // res.json(req.body);  
      let items = [];
      let t = global.basedir + '/public/json/product.json';
-     if (fs.existsSync(t)) { 
-      // do something 
+     if (fs.existsSync(t)) {      
         fs.readFile(t, (err, data) => {
           if (err) throw err;
           let product = JSON.parse(data);
@@ -89,6 +91,8 @@ class AdminController {
           let idMax = Math.max(...idArray);
           req.body.id = parseInt(idMax) + 1;           
           items.push(req.body);
+          global.product = items;
+
           fs.writeFile(t,JSON.stringify({"data":items}), (err) => {
             if (err) throw err;
             return res.redirect('/admin/product');       
@@ -97,6 +101,7 @@ class AdminController {
      }else{
       req.body.id = 1;       
       items.push(req.body); 
+      global.product = items;
       fs.writeFile(t,JSON.stringify({"data":items}), (err) => {
         if (err) throw err;
         res.redirect('/admin/product');       
@@ -123,7 +128,8 @@ class AdminController {
       let items = global.product;
       let dataNew = items.find(item => item.id == id);
       let album = dataNew.imgAlbum.split(',');
-      res.render('admin/product',{ layout : 'layoutAdmin', updateProduct:true , summernote:true, item:dataNew , myCategory, album , myDvt:global.myDvt});   
+      let category = dataNew.category.split(',');
+      res.render('admin/product',{ layout : 'layoutAdmin', updateProduct:true , summernote:true, item:dataNew , myCategory, album, category , myDvt:global.myDvt});   
 
   }
   updateProductById(req, res) {
@@ -141,6 +147,25 @@ class AdminController {
 
   }
 
+  copyProduct(req, res) {
+    let id = parseInt(req.params.id);
+    let items = global.product;    
+    let idArray = items.map((value)=> {
+      return value.id;
+    })
+    let idMax = Math.max(...idArray);
+    let item = items.find(value => value.id === id);
+    item.id = parseInt(idMax) + 1;  
+    let t = global.basedir + '/public/json/product.json';
+    let itemNew = readJson(t); 
+    itemNew.push(item);
+    global.product = itemNew;
+    fs.writeFile(t,JSON.stringify({"data":itemNew}), (err) => {
+      if (err) throw err;      
+      return res.redirect('/admin/product');      
+    });
+  }
+
   createCategory(req, res) {
     var items = global.myCategory;
     let id = parseInt(req.params.id);
@@ -155,6 +180,7 @@ class AdminController {
       })
       let idMax = Math.max(...idArray);
       req.body.id = parseInt(idMax) + 1;
+      req.body.slug = ChangeToSlug(req.body.name);
       items.push(req.body);    
     }
     let t= global.basedir + '/public/json/category.json';

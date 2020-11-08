@@ -17,15 +17,15 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {{#each product}}
+                                {{#each idCart}}
                                 <tr id="{{this.id}}">
-                                    <td class="product-thumbnail"><a href="#"><img src="{{this.img}}" alt="product img" /></a></td>
+                                    <td class="product-thumbnail"><a href="#"><img src="/azshopweb/images/product/{{this.imgName}}"  alt="product img" /></a></td>
                                     <td class="product-name"><a href="#">{{this.title}}</a></td>
                                     <td class="product-price"><span class="amount">{{this.salePrice}}</span></td>
                                     <td class="product-quantity"><input type="number" id="quan-{{this.id}}" value="{{this.quantity}}" onblur="changeQuantity({{this.id}})" /></td>
                                     <td class="product-subtotal">{{this.total}}</td>
                                     <td class="product-remove"><a href="/cart/delete/{{this.id}}">X</a></td>
-                                </tr>
+                                </tr> 
                                 {{/each}}
                             </tbody>
                         </table>
