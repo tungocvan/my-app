@@ -44,7 +44,7 @@ class AdminController {
         
         case 'createProduct':         
                 
-        res.render('admin/product',{ layout : 'layoutAdmin', createProduct:true , summernote:true,myCategory, myDvt:global.myDvt});  
+        res.render('admin/admin',{ layout : 'layoutAdmin', createProduct:true , summernote:true,myCategory, myDvt:global.myDvt});  
         break;
         case 'createCategory':
         var item = [];
@@ -53,10 +53,10 @@ class AdminController {
            slug = req.params.slug;
            item = global.myCategory.find(value => value.id ==req.params.slug);
         }        
-        res.render('admin/product',{ layout : 'layoutAdmin', createCategory:true,myCategory,item,slug});
+        res.render('admin/admin',{ layout : 'layoutAdmin', createCategory:true,myCategory,item,slug});
         break;
         default:  
-          res.render('admin/product',{ layout : 'layoutAdmin' , product:true, items:global.product});
+          res.render('admin/admin',{ layout : 'layoutAdmin' , product:true, items:global.product});
           break;
       }
       
@@ -112,11 +112,12 @@ class AdminController {
   productDelete(req, res) {
       let id = parseInt(req.params.id);
       let items = global.product;
-      let dataNew = items.filter(item => item.id !== id);
+      //console.log('items product:',items);      
+      let dataNew = items.filter(item => item.id != id);
+      global.product = dataNew;
       let t = global.basedir + '/public/json/product.json';
       fs.writeFile(t,JSON.stringify({"data":dataNew}), (err) => {
-        if (err) throw err;
-        global.product = dataNew;
+        if (err) throw err;        
         return res.redirect('/admin/product');       
       });     
 
@@ -127,9 +128,14 @@ class AdminController {
       let id = parseInt(req.params.id);
       let items = global.product;
       let dataNew = items.find(item => item.id == id);
+           
       let album = dataNew.imgAlbum.split(',');
-      let category = dataNew.category.split(',');
-      res.render('admin/product',{ layout : 'layoutAdmin', updateProduct:true , summernote:true, item:dataNew , myCategory, album, category , myDvt:global.myDvt});   
+      let category = [];
+      if(dataNew.category !== undefined) {
+        category = dataNew.category.split(',');
+      }
+ 
+      res.render('admin/admin',{ layout : 'layoutAdmin', updateProduct:true , summernote:true, item:dataNew , myCategory, album, category , myDvt:global.myDvt});   
 
   }
   updateProductById(req, res) {
@@ -149,12 +155,13 @@ class AdminController {
 
   copyProduct(req, res) {
     let id = parseInt(req.params.id);
+      
     let items = global.product;    
     let idArray = items.map((value)=> {
       return value.id;
     })
     let idMax = Math.max(...idArray);
-    let item = items.find(value => value.id === id);
+    let item = items.find(value => value.id == id);
     item.id = parseInt(idMax) + 1;  
     let t = global.basedir + '/public/json/product.json';
     let itemNew = readJson(t); 
@@ -187,7 +194,7 @@ class AdminController {
     fs.writeFile(t,JSON.stringify({"data":items}), (err) => {
       if (err) throw err;
       global.myCategory = items;
-      return res.redirect('/admin/product/createCategory');       
+      return res.redirect('/admin/admin/createCategory');       
     }); 
 
    
@@ -205,6 +212,36 @@ class AdminController {
       return res.redirect('/admin/product/createCategory');      
     });   
   }
+
+  menuTop(req, res) {
+    res.render('admin/admin',{ layout : 'layoutAdmin' , menuTop:true});
+  }
+  order(req, res) {
+    res.render('admin/admin',{ layout : 'layoutAdmin' , order:true});
+  }
+  account(req, res) {
+    res.render('admin/admin',{ layout : 'layoutAdmin' , account:true});
+  }
+
+  post(req, res) {
+    switch (req.params.id) {      
+      case 'listPost':  
+      res.render('admin/admin',{ layout : 'layoutAdmin', listPost:true});  
+      break;
+      case 'createPost':  
+      res.render('admin/admin',{ layout : 'layoutAdmin', createPost:true});  
+      break;
+      case 'categoryPost':  
+      res.render('admin/admin',{ layout : 'layoutAdmin', categoryPost:true});  
+      break;
+
+      default:  
+        res.render('admin/admin',{ layout : 'layoutAdmin', listPost:true});
+        break;
+    }
+    
+    
+  } 
 }
 
 module.exports = new AdminController();

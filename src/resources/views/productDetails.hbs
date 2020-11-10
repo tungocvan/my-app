@@ -11,7 +11,7 @@
                             <div role="tabpanel" class="tab-pane fade show active product-video-position" id="img-tab-{{@index}}">
                                 <img src="/azshopweb/images/product/{{this}}" alt="full-image">
                                 <div class="product-video">
-                                    <a class="video-popup" href="https://www.youtube.com/watch?v=cDDWvj_q-o8">
+                                    <a class="video-popup" href="https://www.youtube.com/watch?v={{@root.product.idVideo}}">
                                         <i class="zmdi zmdi-videocam"></i> View Video
                                     </a>
                                 </div>
@@ -20,7 +20,7 @@
                             <div role="tabpanel" class="tab-pane fade product-video-position" id="img-tab-{{@index}}">
                                 <img src="/azshopweb/images/product/{{this}}" alt="full-image">
                                 <div class="product-video">
-                                    <a class="video-popup" href="https://www.youtube.com/watch?v=cDDWvj_q-o8">
+                                    <a class="video-popup" href="https://www.youtube.com/watch?v={{product.idVideo}}">
                                         <i class="zmdi zmdi-videocam"></i> View Video
                                     </a>
                                 </div>
@@ -67,8 +67,8 @@
                         {{{product.description}}}
                     </div>
                     <ul class="pro__dtl__prize">
-                        <li class="old__prize">{{product.price}}</li>
-                        <li>{{product.salePrice}}</li>
+                        <li class="old__prize">VNĐ {{formatMoney product.price}}</li>
+                        <li>VNĐ {{formatMoney product.salePrice}}</li>
                     </ul>
                     <div class="pro__dtl__color">
                         <h2 class="title__5">Choose Colour</h2>

@@ -1,43 +1,116 @@
 <div class="container">
     <div class="row">
-        <div class="col-lg-3 col-xl-3 col-md-12 col-12">
-            <div class="blod-details-right-sidebar">
-                <div class="our-category-area mt--60">
-                    <h2 class="section-title-2">CATEGORY</h2>
-                    <ul class="categore-menu">
+        <div class="col-lg-2 col-xl-2 col-md-12 col-12">
+            <div class="blod-details-right-sidebar">               
+                
+                <nav id="navSidebar" class="sidebar show">
+                    <div class="text">
+                       <a href="/admin" class="text">Dashboard</a>
+                    </div>
+                    <ul>
+                        <li class="active"><a href="/admin/menuTop">Thiết lập Menu Top</a></li>
                         <li>
-                            <a href="#"><i class="zmdi zmdi-caret-right"></i>Thiết lập Menu Top</a>
+                                
+                                <a href="#" class="feat-btn">Sản Phẩm <span class="fas fa-caret-down first"></span></a>
+                                <ul class="feat-show">
+                                    <li>
+                                         <a href="/admin/product">Sản phẩm</a>
+                                    </li>
+                                    <li>
+                                         <a href="/admin/product/createProduct">Tạo sản phẩm</a>
+                                    </li>
+                                    <li>
+                                        <a href="/admin/product/createCategory">Tạo Danh mục</a>
+                                    </li>
+                                </ul>
                         </li>
                         <li>
-                            <a href="/admin/product"><i class="zmdi zmdi-caret-right"></i>Sản Phẩm</a>
-                            <ul class="subMenu">
-                                <li>
-                                    <a href="/admin/product/createProduct"><i class="zmdi zmdi-caret-right"></i>Tạo sản phẩm</a>
-                                </li>
-                                <li>
-                                    <a href="/admin/product/createCategory"><i class="zmdi zmdi-caret-right"></i>Tạo Danh mục</a>
-                                </li>
-                            </ul>
+                                <a href="#" class="serv-btn">Quản trị Bài viết
+                                    <span class="fas fa-caret-down second"></span>
+                                </a>
+                                <ul class="serv-show">
+                                    <li><a href="/admin/post/listPost">Danh sách Bài Viết</a></li>
+                                    <li><a href="/admin/post/createPost">Viết bài</a></li>
+                                    <li><a href="/admin/post/categoryPost">Chuyên mục</a></li>
+                                </ul>
                         </li>
+                        <li><a href="/admin/order">Theo Dõi Đơn Hàng</a></li>
+                        <li><a href="/admin/account">Quản trị Tài khoản</a></li>
+                        <li><a href="/logout">Đăng xuất Tài khoản</a></li>
+
                     </ul>
-                </div>
+                </nav>
             </div>
         </div>
-        <div class="col-lg-9 col-xl-9 col-md-12 col-12">
+        <div class="col-lg-10 col-xl-10 col-md-12 col-12">
             <div class="blog-details-left-sidebar mrg-blog">
                 <div class="blog-details-top">
                     <div class="our-reply-form-area mt--20">
-                        <h2 class="section-title-2">LEAVE A REPLY</h2>
+                        {{#if product}}
+                         <h2 class="section-title-2">PRODUCT</h2>
+                         {{> admin/product}}
+                        {{/if}}
+                        {{#if createProduct}}
+                         <h2 class="section-title-2">createProduct</h2>
+                         {{> admin/createProduct}}
+                        {{/if}}
+                        {{#if createCategory}}
+                         <h2 class="section-title-2">createCategory</h2>
+                         {{> admin/createCategory}}
+                        {{/if}}
+                        {{#if updateProduct}}
+                         <h2 class="section-title-2">updateProduct</h2>
+                          {{> admin/updateProduct}}
+                        {{/if}}
+                        {{#if menuTop}}
+                         <h2 class="section-title-2">menuTop</h2>
+                          {{> admin/menuTop}}
+                        {{/if}}
+                        {{#if order}}
+                         <h2 class="section-title-2">order</h2>
+                          {{> admin/order}}
+                        {{/if}}
+                        {{#if account}}
+                         <h2 class="section-title-2">account</h2>
+                          {{> admin/account}}
+                        {{/if}}
+                        {{#if listPost}}
+                         <h2 class="section-title-2">listPost</h2>
+                          {{> admin/listPost}}
+                        {{/if}}
+                        {{#if createPost}}
+                         <h2 class="section-title-2">createPost</h2>
+                          {{> admin/createPost}}
+                        {{/if}}
+                        {{#if categoryPost}}
+                         <h2 class="section-title-2">categoryPost</h2>
+                          {{> admin/categoryPost}}
+                        {{/if}}
+                        {{#if updatePost}}
+                         <h2 class="section-title-2">updatePost</h2>
+                          {{> admin/updatePost}}
+                        {{/if}}
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
+<script src="https://kit.fontawesome.com/a076d05399.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded',function(){        
            
         
     })
+    $('.feat-btn').click(function(){
+        $('nav ul .feat-show').toggleClass("show");
+        $('nav ul .first').toggleClass("rotate");
+      });
+      $('.serv-btn').click(function(){
+        $('nav ul .serv-show').toggleClass("show1");
+        $('nav ul .second').toggleClass("rotate");
+      });
+      $('nav ul li').click(function(){
+        $(this).addClass("active").siblings().removeClass("active");
+      });
 </script>

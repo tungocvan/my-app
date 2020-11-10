@@ -20,7 +20,7 @@
                     <a href="#"><img src="/azshopweb/images/product/{{this.imgName}}" alt="product img" /></a>
                 </td>
                 <td class="product-name"><a href="{{this.id}}">{{this.title}}</a></td>
-                <td class="product-price"><span class="amount">{{this.price}}</span></td>
+                <td class="product-price"><span class="amount">{{formatMoney this.price}}</span></td>
                 <td class="product-quantity">{{this.category}}</td>
                 <td class="product-subtotal">
                     <a href="/admin/productDelete/{{this.id}}">Delete | </a>
@@ -28,7 +28,7 @@
                     <a href="/admin/copyProduct/{{this.id}}">Copy</a>
                 </td>
          
-            </tr>
+            </tr> 
             {{/each}}
         </tbody>
     </table>

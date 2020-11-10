@@ -44,6 +44,8 @@ function getCategoryByName(cateObj) {
   return applCate;
 }
 
+
+
 module.exports = {
   readJson,
   ChangeToSlug,

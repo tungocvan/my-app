@@ -4,11 +4,28 @@ class LoginRegisterController {
   index(req, res) {
     if(global.isLogin){
       res.locals.profile = global.profile;
-      res.render('myAccount',{ layout : 'layoutWebsite'});
-    }else{
-       
+      let slug = req.params.slug;
+      switch (slug) {
+        case 'info':
+          res.render('myAccount',{ layout : 'layoutWebsite', slug:'Thông Tin Tài Khoản',info:true});
+          break;
+        case 'order':
+          res.render('myAccount',{ layout : 'layoutWebsite', slug:'Theo dõi đơn hàng',order:true});
+          break;
+        case 'wishlist':
+          res.render('myAccount',{ layout : 'layoutWebsite', slug:'Sản phẩm yêu thích',wishlist:true});
+          break;
+        case 'history':
+          res.render('myAccount',{ layout : 'layoutWebsite', slug:'Lịch sử giao dịch',history:true});
+          break;
+        default:
+          res.render('myAccount',{ layout : 'layoutWebsite', slug});
+          break;
+      }
+      
+    }else{       
        res.render('loginRegister',{ layout : 'layoutWebsite' , isLog:'show active'});
-    }     
+    }      
   } 
   logout(req, res) {
     if(global.isLogin){

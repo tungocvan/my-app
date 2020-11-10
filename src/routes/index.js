@@ -8,6 +8,7 @@ const contactRouter = require('./contact');
 const loginRegisterRouter = require('./loginRegister');
 const productDetailsRouter = require('./productDetails');
 const wishlistRouter = require('./wishlist');
+const accountRouter = require('./account');
 
 function route(app) {
   app.use('/admin', adminRouter);
@@ -20,6 +21,7 @@ function route(app) {
   app.use('/checkout',showMenu, checkoutRouter);  
   app.use('/productDetails',showMenu, productDetailsRouter);
   app.use('/wishlist',showMenu, wishlistRouter);
+  app.use('/account',showMenu, accountRouter);
   app.use('/',showMenu, siteRouter);
 }
 

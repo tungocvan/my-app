@@ -16,14 +16,14 @@
                                 <a href="/{{this.slug}}">{{this.name}}</a>
                             {{/each}}
                         </div>
-                        <div class="filter__box">
+                        {{!-- <div class="filter__box">
                             <a class="filter__menu" href="/productDetails">filter</a>
-                        </div>
+                        </div> --}}
                     </div>
                 </div>
             </div>
             <!-- Start Filter Menu -->
-            <div class="filter__wrap">
+            {{!-- <div class="filter__wrap">
                 <div class="filter__cart">
                     <div class="filter__cart__inner">
                         <div class="filter__menu__close__btn">
@@ -91,19 +91,19 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
             <!-- End Filter Menu -->
             <!-- End Product MEnu -->
             <div class="product__list another-product-style">
-                <div class="row">
+                <div class="row" id="showProduct">
                    <!-- Start Single Product -->
-                    {{#each product}}
-                    <div class="col-lg-3 single__pro col-xl-3 col-md-4 col-12 cat--3 col-sm-6">
+                    {{#each product}}                    
+                    <div  class="col-lg-3 single__pro col-xl-3 col-md-4 col-12 cat--3 col-sm-6 productItem"  data-id="{{sum @index 1}}">
                         <div class="product foo"> 
                             <div class="product__inner">
                                 <div class="pro__thumb">
                                     <a href="/productDetails/{{this.id}}">
-                                        <img src="/azshopweb/images/product/{{this.imgName}}" alt="product images">
+                                        <img height="260px" src="/azshopweb/images/product/{{this.imgName}}" alt="product images">
                                     </a>
                                 </div>
                                 <div class="product__hover__info">
@@ -114,11 +114,11 @@
                                     </ul>
                                 </div>
                             </div>
-                            <div class="product__details">
+                            <div class="product__details" style="min-height: 92px;">
                                 <h2><a href="/productDetails/{{this.id}}">{{this.title}}</a></h2>
                                 <ul class="product__price">
-                                    <li class="old__price">${{this.price}}</li>
-                                    <li class="new__price">${{this.salePrice}}</li>
+                                    <li class="old__price">VNĐ {{formatMoney this.price}}</li>
+                                    <li class="new__price">VNĐ {{formatMoney this.salePrice}}</li>
                                 </ul>
                             </div>
                         </div>
@@ -128,17 +128,22 @@
                 </div>
             </div>
             <!-- Start Load More BTn -->
-            <div class="row mt--60">
+            {{!-- <div class="row mt--60">
                 <div class="col-md-12">
                     <div class="htc__loadmore__btn">
-                        <a href="/productDetails">load more</a>
+                        <p id="loadMore" style="cursor: pointer;" >load more</p>                        
                     </div>
                 </div>
-            </div>
+            </div> --}}
             <!-- End Load More BTn -->
         </div>
     </div>
 </section>
+<script>
+    document.addEventListener('DOMContentLoaded',function(){        
+        //let id = $('div[data-id]');
+      
 
-
-
+        
+    })
+</script>
