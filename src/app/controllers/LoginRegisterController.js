@@ -14,7 +14,11 @@ class LoginRegisterController {
           res.render('myAccount',{ layout : 'layoutWebsite', slug:'Thông Tin Tài Khoản',info:true,item,chucvu,gioitinh});
           break;
         case 'order':
-          res.render('myAccount',{ layout : 'layoutWebsite', slug:'Theo dõi đơn hàng',order:true});
+          let email = global.profile.email;                    
+          let t = global.basedir + '/public/json/dataDonHang.json'; 
+          let items = readJson(t);
+          let itemOrder = items.filter(value => value.email == email);
+          res.render('myAccount',{ layout : 'layoutWebsite', slug:'Theo dõi đơn hàng',order:true,itemOrder});
           break;
         case 'wishlist':
           res.render('myAccount',{ layout : 'layoutWebsite', slug:'Sản phẩm yêu thích',wishlist:true});
