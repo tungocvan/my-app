@@ -20,6 +20,13 @@ class LoginRegisterController {
           let itemOrder = items.filter(value => value.email == email);
           res.render('myAccount',{ layout : 'layoutWebsite', slug:'Theo dõi đơn hàng',order:true,itemOrder});
           break;
+        case 'orderDetails':
+          let id = req.params.id;
+          let tDh = global.basedir + '/public/json/dataDonHang.json'; 
+          let itemsDH = readJson(tDh);
+          let itemDh = itemsDH.find(value => value.id == id);                   
+          res.render('myAccount',{ layout : 'layoutWebsite', slug:'Đơn hàng chi tiết',orderDetails:true,item:itemDh});
+          break;
         case 'wishlist':
           res.render('myAccount',{ layout : 'layoutWebsite', slug:'Sản phẩm yêu thích',wishlist:true});
           break;

@@ -45,6 +45,10 @@
                          <h2 class="section-title-2">{{slug}}</h2>
                         {{> account/order}} 
                         {{/if}}
+                        {{#if orderDetails}}
+                         <h2 class="section-title-2">{{slug}}</h2>
+                        {{> account/orderDetails}} 
+                        {{/if}}
                         {{#if wishlist}}
                          <h2 class="section-title-2">{{slug}}</h2>
                         {{> account/wishlist}} 
