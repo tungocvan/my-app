@@ -2318,7 +2318,7 @@ select.select-color {
 .contact-box.message {
     margin-bottom: 40px;
 }
-.contact-btn .fv-btn {
+.contact-btn .fv-btn , .contact-btn .disabled{
     background: transparent none repeat scroll 0 0;
     border: 1px solid #d5d5d5;
     color: #4b4b4b;

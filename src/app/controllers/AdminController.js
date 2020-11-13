@@ -2,7 +2,7 @@ const fs = require('fs');
 const Buffer = require('buffer/').Buffer;
 const path = require('path'); 
 const menu = require('../libs/myMenu');
-const {readJson ,ChangeToSlug } = require('../libs/myFunction');
+const {readJson ,ChangeToSlug, writeJson } = require('../libs/myFunction');
 
 
 // function readJson(jsonFile) {
@@ -217,10 +217,94 @@ class AdminController {
     res.render('admin/admin',{ layout : 'layoutAdmin' , menuTop:true});
   }
   order(req, res) {
-    res.render('admin/admin',{ layout : 'layoutAdmin' , order:true});
+    let t = global.basedir + '/public/json/dataDonHang.json'; 
+    let items = readJson(t);
+    let trangthai = ['Chờ xác nhận đơn hàng.','Đang xữ lý','Hủy đơn hàng','Đang vận chuyển','Hoàn thành','Thất bại'];
+    res.render('admin/admin',{ layout : 'layoutAdmin' , order:true, items,trangthai});
+  }
+  orderDetails(req, res) {
+    let slug = req.params.slug;    
+    let id = parseInt(req.params.id);
+    let t = global.basedir + '/public/json/dataDonHang.json'; 
+    let items = readJson(t);
+    let item = items.find(value => value.id == id);
+    let trangthai = ['Chờ xác nhận đơn hàng.','Đang xữ lý','Hủy đơn hàng','Đang vận chuyển','Hoàn thành','Thất bại'];
+    if(slug){
+        
+        let index = items.findIndex(value => value.id == id);
+        if(index !== -1){
+           items[index].status = trangthai[slug];
+           //res.json(items);
+           fs.writeFile(t,JSON.stringify({"data":items}), (err) => {
+            if (err) throw err;
+            return res.redirect('/admin/order');       
+          }); 
+           
+        }
+        
+    }else{     
+      
+      res.render('admin/admin',{ layout : 'layoutAdmin' , orderDetails:true, item,trangthai});
+    }
+    
   }
   account(req, res) {
-    res.render('admin/admin',{ layout : 'layoutAdmin' , account:true});
+    var chucvu = ['Khách hàng','Biên tập viên','Quản trị'];
+    var gioitinh = ['Nam','Nữ','Khác'];
+    let t = global.basedir + '/public/json/dataKhach.json';
+    let items = readJson(t);
+ 
+    switch (req.params.slug) {      
+      case 'createAccount':  
+      res.render('admin/admin',{ layout : 'layoutAdmin' , createAccount:true, items});  
+      break;
+      case 'editAccount':
+      let idEdit = req.params.id;
+      let item = items.find(value => value.id == idEdit);    
+      res.render('admin/admin',{ layout : 'layoutAdmin' , editAccount:true, item,chucvu,gioitinh});  
+      break;
+      case 'deleteAccount':  
+        let id = req.params.id;
+        let itemsNew = items.filter(value => value.id !=id);
+        fs.writeFile(t,JSON.stringify({"data":itemsNew}), (err) => {
+        if (err) throw err;
+        return res.redirect('/admin/account');       
+        }); 
+      break;
+      default:  
+        res.render('admin/admin',{ layout : 'layoutAdmin' , account:true, items});
+      break;
+    }  
+    
+  }
+ 
+  updateAccount(req, res) {
+    let t = global.basedir + '/public/json/dataKhach.json';
+    let items = readJson(t); 
+    if(req.body.email){
+      if(req.params.id){
+          let id = parseInt(req.params.id);
+          let index = items.findIndex(value => value.id == id) ;
+          req.body.id = id;
+          items[index] = req.body;
+      }else{               
+            let idArray = items.map((item)=> {
+              return item.id;
+            })
+            let idMax = Math.max(...idArray);
+            req.body.id = parseInt(idMax) + 1;
+            items.push(req.body);
+      }      
+        fs.writeFile(t,JSON.stringify({"data":items}), (err) => {
+        if (err) throw err;              
+        if(req.params.slug){          
+          global.profile = req.body;
+          return res.redirect('/register'); 
+        } 
+        return res.redirect('/admin/account');       
+       }); 
+   
+    }
   }
 
   post(req, res) {
@@ -239,9 +323,21 @@ class AdminController {
         res.render('admin/admin',{ layout : 'layoutAdmin', listPost:true});
         break;
     }
-    
-    
   } 
+
+  checkField(req, res) {
+     console.log('req.body:',req.body);
+     let t = global.basedir + req.body.t;
+     let field = req.body.field;
+     let items = readJson(t);
+     let findEmail = items.findIndex(value =>value.email == field); 
+     if(findEmail === -1){
+       res.json({"message":false});
+     }else{
+      res.json({"message":true});
+     }
+     
+  }
 }
 
 module.exports = new AdminController();

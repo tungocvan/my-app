@@ -7,7 +7,8 @@
                 <div class="ckeckout-left-sidebar">
                     <!-- Start Checkbox Area -->
                     <div class="checkout-form">
-                        <h2 class="section-title-3">Billing details</h2>
+                        <h2 class="section-title-3">Billing details</h2> 
+                        {{#if message}}<span style="color:red;margin-top:5px"> Vui lòng nhập đầy đủ thông tin!</span>{{/if}}
                         <div class="checkout-form-inner">
                             <div class="single-checkout-box">
                                 <input type="text" placeholder="First Name*" name="firstName" value="{{profile.firstName}}">
@@ -38,7 +39,7 @@
                                 <input type="text" placeholder="Zip Code*">
                             </div> --}}
                             <div class="single-checkout-box checkbox">
-                                <input id="remind-me" type="checkbox">
+                                <input id="remind-me" type="checkbox" name="save">
                                 <label for="remind-me"><span></span>Create a Account ?</label>
                             </div>
                         </div>
@@ -64,15 +65,15 @@
                                 <input type="text" placeholder="Security Code*">
                             </div> --}}
                             <div class="single-checkout-box checkbox">
-                                <input id="remind-me" type="radio" name="payment">
+                                <input id="remind-me" type="radio" name="payment" value="1" checked>
                                 <label for="remind-me"><span></span>Thanh toán sau khi nhận hàng</label>
                             </div>
                             <div class="single-checkout-box checkbox">
-                                <input id="remind-me" type="radio" name="payment">
+                                <input id="remind-me" type="radio" name="payment" value="2">
                                 <label for="remind-me"><span></span>Thanh toán bằng thẻ tín dụng</label>
                             </div>
                             <div class="single-checkout-box checkbox">
-                                <input id="remind-me" type="radio" name="payment">
+                                <input id="remind-me" type="radio" name="payment" value="3">
                                 <label for="remind-me"><span></span>Thanh toán bằng Paypal</label>
                             </div>
                             

@@ -2,7 +2,7 @@
 class CartController {
   // [GET] /
   index(req, res) {
-    //console.log('req.body:',req.body);
+    
     
     let id ;
     if(req.body.id) {

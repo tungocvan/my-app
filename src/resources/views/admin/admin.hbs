@@ -70,9 +70,21 @@
                          <h2 class="section-title-2">order</h2>
                           {{> admin/order}}
                         {{/if}}
+                        {{#if orderDetails}}
+                         <h2 class="section-title-2">order</h2>
+                          {{> admin/orderDetails}}
+                        {{/if}}
                         {{#if account}}
                          <h2 class="section-title-2">account</h2>
                           {{> admin/account}}
+                        {{/if}}
+                        {{#if createAccount}}
+                         <h2 class="section-title-2">createAccount</h2>
+                          {{> admin/createAccount}}
+                        {{/if}}
+                        {{#if editAccount}}
+                         <h2 class="section-title-2">editAccount</h2>
+                          {{> admin/editAccount}}
                         {{/if}}
                         {{#if listPost}}
                          <h2 class="section-title-2">listPost</h2>

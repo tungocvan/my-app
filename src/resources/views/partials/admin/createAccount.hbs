@@ -1,48 +1,39 @@
-<h2>Email: {{item.email}}</h2>
 <div class="container mt-4">
         <div class="row">
             <div class="col-lg-12 col-xl-12">
                 <div class="checkout-form">  
-                    <form method="POST" action="/admin/updateAccount/{{item.id}}/login">      
+                    <form method="POST" action="/admin/updateAccount/">      
                             <div class="single-checkout-box">
-                                    <input type="text" placeholder="Họ" name="firstName" style="width:20%" value="{{item.firstName}}" required>                               
-                                    <input type="text" placeholder="Tên" name="lastName" style="width:30%" value="{{item.lastName}}" required> 
-                                    <input type="text" placeholder="Email" name="email" style="width:30%" value="{{item.email}}" onchange="checkField(this)" hidden>
+                                    <input type="text" placeholder="Họ" name="firstName" style="width:20%" required>                               
+                                    <input type="text" placeholder="Tên" name="lastName" style="width:30%" required> 
+                                    <input type="text" placeholder="Email" name="email" style="width:30%" onchange="checkField(this)" required>
                                     <span id="messageEmail"></span> 
                                     
                             </div>
                             <div class="single-checkout-box">
                                     <select style="width:20%" name="gioitinh">
                                       <option>Giới tính</option>
-                                      {{#each gioitinh}}   
-                                         {{#ifCond this "==" @root.item.gioitinh}}                    
-                                            <option selected="selected" value="{{this}}">{{this}}</option> 
-                                         {{else}}
-                                            <option value="{{this}}">{{this}}</option>
-                                        {{/ifCond}} 
-                                      {{/each}}              
+                                      <option value="Nam">Nam</option>              
+                                      <option value="Nữ">Nữ</option>              
+                                      <option value="Khác">Khác</option>              
                                     </select>
                                     <label>Năm sinh:</label> 
-                                    <input class="myDate" type="date"  name="date" value="{{item.date}}"  style="width:20%">
-                                    <select style="width:20%" name="chucvu" hidden>
+                                    <input class="myDate" type="date"  name="date" value="{{strDate}}"  style="width:20%">
+                                    <select style="width:20%" name="chucvu">
                                       <option>Chức vụ</option>
-                                      {{#each chucvu}}   
-                                         {{#ifCond this "==" @root.item.chucvu}}                    
-                                            <option selected="selected" value="{{this}}">{{this}}</option> 
-                                         {{else}}
-                                            <option value="{{this}}">{{this}}</option>
-                                        {{/ifCond}} 
-                                      {{/each}}              
+                                      <option value="Khách hàng">Khách hàng</option>              
+                                      <option value="Biên tập viên">Biên tập viên</option>              
+                                      <option value="Quản trị">Quản trị</option>              
                                     </select>
                             </div>
                             <div class="single-checkout-box mt-4">
-                                    <input type="text" placeholder="Số điện thoại" name="phone" value="{{item.phone}}" style="width:20%">                               
-                                    <input type="text" placeholder="Địa chỉ" name="address" value="{{item.address}}" style="width:60%">
+                                    <input type="text" placeholder="Số điện thoại" name="phone" style="width:20%">                               
+                                    <input type="text" placeholder="Địa chỉ" name="address" style="width:60%">
                                     
                             </div>
                             <div class="single-checkout-box">
-                                    <input id="mk1" type="text" placeholder="Mật khẩu" name="password" style="width:30%" value="{{item.password}}" onchange="confirmPassword(this)" required>                               
-                                    <input id="mk2" type="text" placeholder="Xác nhận lại mật khẩu" name="confirmpassword" style="width:30%" value="{{item.confirmpassword}}" onchange="confirmPassword(this)" required>
+                                    <input id="mk1" type="text" placeholder="Mật khẩu" name="password" style="width:30%" onchange="confirmPassword(this)" required>                               
+                                    <input id="mk2" type="text" placeholder="Xác nhận lại mật khẩu" name="confirmpassword" style="width:30%" onchange="confirmPassword(this)" required>
                                     <span id="confirmPassword"></span>
                             </div>
                             
@@ -50,15 +41,14 @@
                             <div class="single-checkout-box mt-2">                               
                                <input id="img" type="file" onchange="fileupload(this)">
                                <div style="position: relative;width:150px;" class="mt-2">
-                                <img id="preview" style="width:150px;height:150px" src="/azshopweb/images/account/{{item.imgName}}">
-                                <span onclick="hideImg()"><i id="delete" style="position: absolute;right:0;top:0;padding:5px;color: cyan;" class="remove__btn zmdi zmdi-close"></i></span>
+                                <img id="preview" style="display:none;width:150px;height:150px">
+                                <span onclick="hideImg()"><i id="delete" style="position: absolute;right:0;top:0;padding:5px;color: cyan;display:none" class="remove__btn zmdi zmdi-close"></i></span>
                                </div>
-                               <input id="imgName" name="imgName"  type="text" value="{{item.imgName}}" hidden>                              
+                               <input id="imgName" name="imgName"  type="text" hidden>                              
                             </div>
 
                             <div id="isSave" class="contact-btn mt-2 mb-2">
-                                {{!-- <button  type="submit" class="disabled" disabled>LƯU</button> --}}
-                                <button class="fv-btn"  type="submit">LƯU</button>
+                                <button  type="submit" class="disabled" disabled>LƯU</button>
                             </div>
                             
                     </form>  

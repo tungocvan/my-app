@@ -1,4 +1,7 @@
 const fs = require('fs');
+const {readJson } = require('../libs/myFunction');
+var chucvu = ['Khách hàng','Biên tập viên','Quản trị'];
+var gioitinh = ['Nam','Nữ','Khác'];
 class LoginRegisterController {
   // [GET] /
   index(req, res) {
@@ -7,7 +10,8 @@ class LoginRegisterController {
       let slug = req.params.slug;
       switch (slug) {
         case 'info':
-          res.render('myAccount',{ layout : 'layoutWebsite', slug:'Thông Tin Tài Khoản',info:true});
+          let item = global.profile;
+          res.render('myAccount',{ layout : 'layoutWebsite', slug:'Thông Tin Tài Khoản',info:true,item,chucvu,gioitinh});
           break;
         case 'order':
           res.render('myAccount',{ layout : 'layoutWebsite', slug:'Theo dõi đơn hàng',order:true});
@@ -35,51 +39,83 @@ class LoginRegisterController {
   } 
   register(req, res,next) {    
     let t = global.basedir + '/public/json/dataKhach.json';  
+    let items = readJson(t);
     if(req.body.firstName === undefined){
-      console.log('login');       
-      fs.readFile(t, (err, data) => {
-        if (err) throw err;
-         let dataKh = JSON.parse(data);
-         let items = dataKh.khachhang;       
+        // login
          let email = req.body.email;
          let password = req.body.password;
-         let indexIdEdit = items.find(i => i.email === email && i.password === password);       
-         //console.log('indexIdEdit:',indexIdEdit);                 
+         let indexIdEdit = items.find(i => i.email === email && i.password === password); 
          if(indexIdEdit) {
-            global.isLogin = true;          
-            global.profile = indexIdEdit;        
-            return  res.redirect('/');
-         }     
-         res.render('loginRegister',{ layout : 'layoutWebsite' , isLog:'show active'});
+              global.isLogin = true;          
+              global.profile = indexIdEdit;        
+              return  res.redirect('/register');
+          }else{
+            res.render('loginRegister',{ layout : 'layoutWebsite' , isLog:'show active'});
+          } 
+    }else{
+        // register
+       let email = req.body.email;
+       let indexIdEdit = items.findIndex(i => i.email === email);        
+       if(indexIdEdit === -1) {
+        let idArray = items.map((item)=> {
+          return item.id;
+        })
+        let idMax = Math.max(...idArray);
+        req.body.id = parseInt(idMax) + 1;
+         items.push(req.body);
+          fs.writeFile(t,JSON.stringify({"data":items}), (err) => {
+            if (err) throw err;
+            return res.redirect('/');        
+          }); 
+       }else{
+         res.render('loginRegister',{ layout : 'layoutWebsite' , isReg:'show active'});
+       }   
+    }
+    // if(req.body.firstName === undefined){
+    //   console.log('login');       
+    //   fs.readFile(t, (err, data) => {
+    //     if (err) throw err;
+    //      let dataKh = JSON.parse(data);
+    //      let items = dataKh.data;       
+    //      let email = req.body.email;
+    //      let password = req.body.password;
+    //      let indexIdEdit = items.find(i => i.email === email && i.password === password);       
+    //      //console.log('indexIdEdit:',indexIdEdit);                 
+    //      if(indexIdEdit) {
+    //         global.isLogin = true;          
+    //         global.profile = indexIdEdit;        
+    //         return  res.redirect('/');
+    //      }     
+    //      res.render('loginRegister',{ layout : 'layoutWebsite' , isLog:'show active'});
          
 
-      });
+    //   });
       
        
-    }else{
-      console.log('register');         
-      fs.readFile(t, (err, data) => {
-        if (err) throw err;
-         let dataKh = JSON.parse(data);
-         let items = dataKh.khachhang;       
-         let email = req.body.email;
-         let indexIdEdit = items.findIndex(i => i.email === email);        
-         if(indexIdEdit === -1) {
-            req.body.lastName = "";
-            req.body.phone = "";
-            req.body.address = "";
-            items.push(req.body);
-            fs.writeFile(t,JSON.stringify({"khachhang":items}), (err) => {
-              if (err) throw err;
-              return res.redirect('/');        
-            }); 
-         }else{
-           res.render('loginRegister',{ layout : 'layoutWebsite' , isReg:'show active'});
-         }         
+    // }else{
+    //   console.log('register');         
+    //   fs.readFile(t, (err, data) => {
+    //     if (err) throw err;
+    //      let dataKh = JSON.parse(data);
+    //      let items = dataKh.data;       
+    //      let email = req.body.email;
+    //      let indexIdEdit = items.findIndex(i => i.email === email);        
+    //      if(indexIdEdit === -1) {
+    //         req.body.lastName = "";
+    //         req.body.phone = "";
+    //         req.body.address = "";
+    //         items.push(req.body);
+    //         fs.writeFile(t,JSON.stringify({"data":items}), (err) => {
+    //           if (err) throw err;
+    //           return res.redirect('/');        
+    //         }); 
+    //      }else{
+    //        res.render('loginRegister',{ layout : 'layoutWebsite' , isReg:'show active'});
+    //      }         
         
-      });
+    //   });
       
-    }
+    // }
     
   } 
 

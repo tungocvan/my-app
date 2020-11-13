@@ -1,13 +1,12 @@
-<h2>Email: {{item.email}}</h2>
 <div class="container mt-4">
         <div class="row">
             <div class="col-lg-12 col-xl-12">
                 <div class="checkout-form">  
-                    <form method="POST" action="/admin/updateAccount/{{item.id}}/login">      
+                    <form method="POST" action="/admin/updateAccount/{{item.id}}">      
                             <div class="single-checkout-box">
                                     <input type="text" placeholder="Họ" name="firstName" style="width:20%" value="{{item.firstName}}" required>                               
                                     <input type="text" placeholder="Tên" name="lastName" style="width:30%" value="{{item.lastName}}" required> 
-                                    <input type="text" placeholder="Email" name="email" style="width:30%" value="{{item.email}}" onchange="checkField(this)" hidden>
+                                    <input type="text" placeholder="Email" name="email" style="width:30%" value="{{item.email}}" onchange="checkField(this)" required>
                                     <span id="messageEmail"></span> 
                                     
                             </div>
@@ -24,7 +23,7 @@
                                     </select>
                                     <label>Năm sinh:</label> 
                                     <input class="myDate" type="date"  name="date" value="{{item.date}}"  style="width:20%">
-                                    <select style="width:20%" name="chucvu" hidden>
+                                    <select style="width:20%" name="chucvu">
                                       <option>Chức vụ</option>
                                       {{#each chucvu}}   
                                          {{#ifCond this "==" @root.item.chucvu}}                    

@@ -5,6 +5,14 @@ function readJson(jsonFile) {
     let cate = JSON.parse(myCategory);
     return cate.data;
 }  
+function writeJson(data,jsonFile) {   
+    try { 
+      fs.writeFileSync(jsonFile, JSON.stringify({data}),{encoding:'utf8'}); 
+      return true;
+    } catch(err) { 
+      return false;
+    } 
+}  
 
 function ChangeToSlug(title)
     {
@@ -48,6 +56,7 @@ function getCategoryByName(cateObj) {
 
 module.exports = {
   readJson,
+  writeJson,
   ChangeToSlug,
   getCategoryByName
 }
