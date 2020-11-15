@@ -11,7 +11,7 @@ const wishlistRouter = require('./wishlist');
 const accountRouter = require('./account');
 
 function route(app) {
-  app.use('/admin', adminRouter);
+  app.use('/admin',ensureAuthenticated, adminRouter);
   app.use('/register',showMenu, loginRegisterRouter);
   app.use('/users',ensureAuthenticated, usersRouter);
   app.use('/login', loginRouter); 
@@ -53,7 +53,7 @@ function showMenu(req, res, next){
   fs.readFile(t, function read(err, data) {
      if (err)   throw err;
      var items = JSON.parse(data); 
-     res.locals.menu =  items.menu; 
+     res.locals.menu =  items.menu;  
      return next();   
   });
 }

@@ -1,7 +1,8 @@
 <!-- QUICKVIEW PRODUCT -->
 <div id="quickview-wrapper">
     <!-- Modal -->
-    <div class="modal fade" id="productModal" tabindex="-1" role="dialog">
+    {{#each product}} 
+    <div class="modal fade" id="productModal-{{this.id}}" tabindex="-1" role="dialog">
         <div class="modal-dialog modal__container" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -12,12 +13,12 @@
                         <!-- Start product images -->
                         <div class="product-images">
                             <div class="main-image images">
-                                <img alt="big images" src="/azshopweb/images/product/big-img/1.jpg">
+                                <img alt="big images" src="/azshopweb/images/product/{{this.imgName}}">
                             </div>
                         </div>
                         <!-- end product images -->
                         <div class="product-info">
-                            <h1>Simple Fabric Bags</h1>
+                            <h1>{{this.title}}</h1>
                             <div class="rating__and__review">
                                 <ul class="rating">
                                     <li><span class="ti-star"></span></li>
@@ -32,12 +33,12 @@
                             </div>
                             <div class="price-box-3">
                                 <div class="s-price-box">
-                                    <span class="new-price">$17.20</span>
-                                    <span class="old-price">$45.00</span>
+                                    <span class="new-price">VNĐ {{formatMoney this.salePrice}}</span>
+                                    <span class="old-price">VNĐ {{formatMoney this.price}}</span>
                                 </div>
                             </div>
                             <div class="quick-desc">
-                                Designed for simplicity and made from high quality materials. Its sleek geometry and material combinations creates a modern look.
+                                {{{this.description}}}
                             </div>
                             <div class="select__color">
                                 <h2>Select color</h2>
@@ -71,7 +72,7 @@
                                 </div>
                             </div>
                             <div class="addtocart-btn">
-                                <a href="#">Add to cart</a>
+                                <a href="/cart/{{this.id}}">Add to cart</a>
                             </div>
                         </div><!-- .product-info -->
                     </div><!-- .modal-product -->
@@ -79,6 +80,7 @@
             </div><!-- .modal-content -->
         </div><!-- .modal-dialog -->
     </div>
+    {{/each}}
     <!-- END Modal -->
 </div>
 <!-- END QUICKVIEW PRODUCT -->

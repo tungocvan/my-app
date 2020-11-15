@@ -14,7 +14,7 @@ class productDetailsController {
        res.locals.totals = global.totals;
     }   
     
-    res.render('productDetails',{ layout : 'layoutWebsite' , product:items , albumImg});
+    res.render('productDetails',{ layout : 'layoutWebsite' , product:items , albumImg, productDetails:true});
   } 
 
 }

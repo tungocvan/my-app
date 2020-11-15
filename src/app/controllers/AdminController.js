@@ -1,7 +1,7 @@
 const fs = require('fs');
 const Buffer = require('buffer/').Buffer;
 const path = require('path'); 
-const menu = require('../libs/myMenu');
+const {addCssMenu} = require('../libs/myMenu');
 const {readJson ,ChangeToSlug, writeJson } = require('../libs/myFunction');
 
 
@@ -30,11 +30,12 @@ class AdminController {
   } 
   menu(req, res) {
       //console.log('menu:',menu.menu);    
-      let t = global.basedir + '/public/azshopweb/menu/menuTop.json';
-      fs.writeFile(t,JSON.stringify({"menu":menu.menu}), (err) => {
-        if (err) throw err;
-        res.render('admin/menu',{ layout : 'layoutAdmin'});        
-      }); 
+      // let t = global.basedir + '/public/azshopweb/menu/menuTop.json';
+      // // đọc menu
+      // fs.writeFile(t,JSON.stringify({"menu":menu.menu}), (err) => {
+      //   if (err) throw err;
+      //   res.render('admin/menu',{ layout : 'layoutAdmin'});        
+      // }); 
       
   } 
   product(req, res) {
@@ -214,7 +215,68 @@ class AdminController {
   }
 
   menuTop(req, res) {
-    res.render('admin/admin',{ layout : 'layoutAdmin' , menuTop:true});
+    let t = global.basedir + '/public/json/dataMenu.json';
+    let menuData = readJson(t);
+    //res.json(menuData);
+    
+    if(req.params.slug == "delete"){
+      let id = req.params.id;
+      let myMenu = menuData.filter(value => value.id != id);
+      fs.writeFile(t,JSON.stringify({"data":myMenu}), (err) => {
+        if (err) throw err;              
+        return res.redirect('/admin/menuTop');     
+       });       
+    } 
+    if(req.params.slug == "edit"){
+      let id = req.params.id;
+      //console.log('id:',id);
+      let myCategory =  menuData.map(value => {
+        return {"id":value.id,"name":value.name}
+      });
+      if(id !==0){
+        let myMenu = menuData.find(value => value.id == id);        
+        res.render('admin/admin',{ layout : 'layoutAdmin' , menuTop:true , item:myMenu,myCategory,editMenu:true});
+      }else{        
+        res.render('admin/admin',{ layout : 'layoutAdmin' , menuTop:true,myCategory,editMenu:true});
+      }    
+            
+    } 
+    if(req.params.slug == "update"){      
+      let id = parseInt(req.params.id);
+      if(id !==0){
+        req.body.id = id;
+        req.body.slug = ChangeToSlug(req.body.name);
+        let index = menuData.findIndex(value => value.id == id);
+        menuData[index] = req.body;
+        //res.json(menuData);        
+      }else{
+        if(menuData.length === 0) {
+          req.body.id = 1;
+        }else{
+          let idArray = menuData.map((item)=> {
+            return item.id;
+          });
+          let idMax = Math.max(...idArray);
+          req.body.id = parseInt(idMax) + 1; 
+        }
+        req.body.slug = ChangeToSlug(req.body.name);
+        menuData.push(req.body);
+        //res.json(req.body);
+      }
+      fs.writeFile(t,JSON.stringify({"data":menuData}), (err) => {
+          if (err) throw err;
+          let tMenu =global.basedir + '/public/azshopweb/menu/menuTop.json';
+          fs.writeFile(tMenu,JSON.stringify({"menu":addCssMenu(menuData)}), (err) => {            
+            if (err) throw err;            
+            res.redirect('/admin/menuTop');      
+        });
+              
+      });
+    }
+    
+    if(req.params.slug == undefined){
+      res.render('admin/admin',{ layout : 'layoutAdmin' , menuTop:true , menuData});
+    }
   }
   order(req, res) {
     let t = global.basedir + '/public/json/dataDonHang.json'; 
@@ -326,7 +388,7 @@ class AdminController {
   } 
 
   checkField(req, res) {
-     console.log('req.body:',req.body);
+     //console.log('req.body:',req.body);
      let t = global.basedir + req.body.t;
      let field = req.body.field;
      let items = readJson(t);

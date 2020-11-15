@@ -2,6 +2,7 @@ const fs = require('fs');
 
 function readJson(jsonFile) {
     let myCategory = fs.readFileSync(jsonFile,{encoding:'utf8', flag:'r'}); 
+    if(!myCategory) return [];
     let cate = JSON.parse(myCategory);
     return cate.data;
 }  

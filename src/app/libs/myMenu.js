@@ -1,22 +1,21 @@
-var menuArray = [
-    {"id":1,"name":"Home","parents":0,"href":"#","position":1,"subMenu":0},
-    {"id":2,"name":"Product","parents":0,"href":"#","position":2,"subMenu":0},
-    {"id":3,"name":"Contact","parents":0,"href":"#","position":3,"subMenu":0},
-    {"id":4,"name":"Home-1","parents":1,"href":"#","position":1,"subMenu":1},
-    {"id":5,"name":"Home-2","parents":1,"href":"#","position":2,"subMenu":1},
-    {"id":6,"name":"Home-3","parents":1,"href":"#","position":3,"subMenu":1},
-    {"id":7,"name":"Product-1","parents":2,"href":"#","position":1,"subMenu":1},
-    {"id":8,"name":"Product-2","parents":2,"href":"#","position":2,"subMenu":1},
-    {"id":9,"name":"Product-2-1","parents":8,"href":"#","position":1,"subMenu":2},
-    {"id":10,"name":"Product-2-2","parents":8,"href":"#","position":2,"subMenu":2},
-    {"id":11,"name":"Product-1-1","parents":7,"href":"#","position":1,"subMenu":2},
-    {"id":12,"name":"Product-1-2","parents":7,"href":"#","position":2,"subMenu":2},
-    {"id":13,"name":"Product-3","parents":2,"href":"#","position":3 ,"subMenu":3},
-    {"id":14,"name":"Home-2-1","parents":5,"href":"#","position":1,"subMenu":1},
-    {"id":15,"name":"Home-2-2","parents":5,"href":"#","position":3,"subMenu":1},
-    {"id":16,"name":"Home-2-3","parents":5,"href":"#","position":3,"subMenu":1},
-   ] ;
-
+// var menuArray = [
+//     {"id":1,"name":"Home","parents":0,"href":"#","position":1,"subMenu":0},
+//     {"id":2,"name":"Product","parents":0,"href":"#","position":2,"subMenu":0},
+//     {"id":3,"name":"Contact","parents":0,"href":"#","position":3,"subMenu":0},
+//     {"id":4,"name":"Home-1","parents":1,"href":"#","position":1,"subMenu":1},
+//     {"id":5,"name":"Home-2","parents":1,"href":"#","position":2,"subMenu":1},
+//     {"id":6,"name":"Home-3","parents":1,"href":"#","position":3,"subMenu":1},
+//     {"id":7,"name":"Product-1","parents":2,"href":"#","position":1,"subMenu":1},
+//     {"id":8,"name":"Product-2","parents":2,"href":"#","position":2,"subMenu":1},
+//     {"id":9,"name":"Product-2-1","parents":8,"href":"#","position":1,"subMenu":2},
+//     {"id":10,"name":"Product-2-2","parents":8,"href":"#","position":2,"subMenu":2},
+//     {"id":11,"name":"Product-1-1","parents":7,"href":"#","position":1,"subMenu":2},
+//     {"id":12,"name":"Product-1-2","parents":7,"href":"#","position":2,"subMenu":2},
+//     {"id":13,"name":"Product-3","parents":2,"href":"#","position":3 ,"subMenu":3},
+//     {"id":14,"name":"Home-2-1","parents":5,"href":"#","position":1,"subMenu":1},
+//     {"id":15,"name":"Home-2-2","parents":5,"href":"#","position":3,"subMenu":1},
+//     {"id":16,"name":"Home-2-3","parents":5,"href":"#","position":3,"subMenu":1},
+//    ] ;
 var newString ='';
 
 function recursive(source, parent){     
@@ -71,5 +70,5 @@ function addCssMenu(menuArray) {
 }
 
 module.exports = {
-    menu : addCssMenu(menuArray)
+    addCssMenu
 }

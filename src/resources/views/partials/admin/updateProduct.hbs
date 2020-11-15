@@ -32,6 +32,13 @@
                             <div id="category">
                                 <input name="category"  type="text" value="{{item.category}}" hidden>
                             </div>
+
+                            <div class="single-checkout-box select-option mt-2">
+                                <input id="strSeo" style="margin-bottom:10px!important" type="text" onchange="chooseSeo(this)" placeholder="Từ khóa SEO - các từ khóa cách nhau dấu ; có thể copy dán vào" name="seo" style="width:60%" value="{{item.seo}}" >                              
+                                <div id="seo">                
+                                </div>
+                            </div>
+
                             <div class="single-checkout-box select-option mt-4">                                
                               
                                 <select style="width:20%" name="dvt">
@@ -89,7 +96,8 @@
         var albumImg = [];
         let album = document.getElementById('imgAlbum').value;
         var category = document.querySelector('#category input').value.split(',');
-        console.log('category:',category);
+        var seo = document.querySelector('#strSeo').value.split(',');    
+        chooseSeo(seo);    
         if(album !=='') albumImg = album.split(',');
         //console.log('albumImg:',albumImg);
         var idImg = 0;
@@ -198,7 +206,7 @@
             if(category.indexOf(e.value) ===-1) {
                 category.push(e.value);
                 let strCate = category.toString();        
-                console.log('category:',category);
+               // console.log('category:',category);
                 $('#itemCate').append(`<span onclick="delCate(this,'${e.value}')" style="color:white;background-color:gray;padding:5px;margin-right:2px;cursor:pointer">${e.value} <i class="zmdi zmdi-close"></i></span>`);    
                 $('#category').html(`<input name="category"  type="text" value="${strCate}" hidden> `)
             }
@@ -210,6 +218,27 @@
             let strCate = category.toString();
             $('#category').html(`<input name="category"  type="text" value="${strCate}" hidden> `)
             console.log('xoa category:',category);
+        }
+
+        function chooseSeo(e){
+     
+                if(e.length === undefined)  seo = e.value.split(',');            
+                $('#seo').html('');
+                if(seo[0]!=="") {
+                    seo = Array.from(new Set(seo));
+                    for(let i=0;i<seo.length;i++){
+                        $('#seo').append(`<span onclick="delSeo(this,'${seo[i]}')" style="color:white;background-color:gray;padding:5px;margin-right:2px;cursor:pointer">${seo[i]} <i class="zmdi zmdi-close"></i></span>`);
+                    } 
+                }
+                
+                           
+        }
+
+        function delSeo(e,nameCate){
+            e.remove();
+            seo.splice(seo.indexOf(nameCate),1);
+            let strSeo = seo.toString();
+            $('#strSeo').val(strSeo);
         }
 
 </script>

@@ -3,7 +3,8 @@ const router = express.Router();
 
 const AdminController = require('../app/controllers/AdminController');
 
-router.get('/menuTop/:id?', AdminController.menuTop);
+router.get('/menuTop/:id?/:slug?', AdminController.menuTop);
+router.post('/menuTop/:id?/:slug?', AdminController.menuTop);
 router.get('/order/:id?', AdminController.order);
 router.get('/orderDetails/:id?/:slug?', AdminController.orderDetails);
 router.get('/account/:slug?/:id?', AdminController.account);
