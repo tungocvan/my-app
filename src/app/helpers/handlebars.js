@@ -47,6 +47,10 @@ module.exports = {
         //return '2020-02-11';
 
     }, 
+    strCut: function (str,n) {
+        let strContent = str.replace(/<[^>]+>/g, '');
+        return strContent.substr(0,n)
+    },
     formatMoney: function (amount, decimalCount = 0, decimal = ".", thousands = ",") {
         try {
           decimalCount = Math.abs(decimalCount);

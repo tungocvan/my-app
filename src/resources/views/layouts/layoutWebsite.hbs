@@ -6,10 +6,12 @@
     {{#if productDetails}}
     <title>{{product.title}}</title>
     <meta name="keywords" content="{{product.seo}}">
+    <meta name="description" content="{{strCut product.description 150}}">
+    <meta property="og:image" content="/azshopweb/images/product/{{product.imgName}}">
     {{else}}
     <title>AZSHOPWEB TEMPLATE - TỪ NGỌC VÂN</title>
     {{/if}}
-    <meta name="description" content="">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <!-- Place favicon.ico in the root directory -->
