@@ -5,8 +5,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LogoutButton from '../../components/LogoutButton';
 import { useSidebar } from '../../context/SidebarContext';
 import { HEADER } from '../../constants';
+import HeaderSearchButton from '../../components/HeaderSearchButton'; // 👉 import component bạn vừa tạo
 
-const StackHeader = ({ title, showMenu = true, showLogout = true, isText = false }) => {
+const StackHeader = ({
+  title,
+  showMenu,
+  showLogout,
+  isText = false,
+  isSearch = false,
+  navigation,
+}) => {
   const { setSidebarOpen } = useSidebar();
 
   // Tùy chọn justifyContent
@@ -27,8 +35,17 @@ const StackHeader = ({ title, showMenu = true, showLogout = true, isText = false
           <View style={styles.leftButton} />
         )}
 
-        {/* Title */}
-        {title ? <Text style={styles.title}>{title}</Text> : null}
+        {/* Title hoặc Search Input */}
+        {isSearch ? (
+          <View style={{ flex: 1, marginHorizontal: 8 }}>
+            <HeaderSearchButton
+              placeholder="Tìm kiếm..."
+              onPress={() => navigation.navigate('SearchTab')}
+            />
+          </View>
+        ) : (
+          title && <Text style={styles.title}>{title}</Text>
+        )}
 
         {/* Logout Right */}
         {showLogout ? <LogoutButton isText={isText} /> : <View style={{ width: 40 }} />}
@@ -39,11 +56,11 @@ const StackHeader = ({ title, showMenu = true, showLogout = true, isText = false
 
 const styles = StyleSheet.create({
   safe: {
-    backgroundColor: HEADER.BG_COLOR, // trùng với header
+    backgroundColor: HEADER.BG_COLOR,
   },
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     paddingHorizontal: 12,
     height: HEADER.HEIGHT,
   },

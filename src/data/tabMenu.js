@@ -5,6 +5,7 @@ import HomeStack from '../navigation/stacks/HomeStack';
 import AboutStack from '../navigation/stacks/AboutStack';
 import ProfileStack from '../navigation/stacks/ProfileStack';
 import SettingStack from '../navigation/stacks/SettingStack';
+import SearchStack from '../navigation/stacks/SearchStack';
 
 const tabMenu = [
   {
@@ -31,6 +32,13 @@ const tabMenu = [
     label: 'Cài đặt',
     icon: { active: 'settings', inactive: 'settings-outline' },
     component: SettingStack,
+  },
+  {
+    name: 'SearchTab',
+    label: 'Tìm kiếm',
+    icon: { active: 'search', inactive: 'search-outline' },
+    component: SearchStack,
+    hidden: false,
   },
 ];
 

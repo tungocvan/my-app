@@ -16,11 +16,12 @@ const CustomStackNavigator = ({ children, defaultHeaderOptions = {} }) => {
       {React.Children.map(children, (child) => {
         const { props } = child;
         const options = props.options || {};
-        const title = props?.title || options?.title || props?.name || '';
+        const title = props?.title || options?.title || '';
 
         // Lấy showMenu/showLogout từ options nếu có, fallback về defaultHeaderOptions
-        const showMenu = options.showMenu ?? defaultHeaderOptions.showMenu ?? true;
-        const showLogout = options.showLogout ?? defaultHeaderOptions.showLogout ?? true;
+        const showMenu = options.showMenu ?? defaultHeaderOptions.showMenu ?? false;
+        const showLogout = options.showLogout ?? defaultHeaderOptions.showLogout ?? false;
+        const isSearch = options.isSearch ?? defaultHeaderOptions.isSearch ?? false;
 
         return (
           <Stack.Screen
@@ -32,6 +33,7 @@ const CustomStackNavigator = ({ children, defaultHeaderOptions = {} }) => {
                   title={title}
                   showMenu={showMenu}
                   showLogout={showLogout}
+                  isSearch={isSearch}
                   {...headerProps}
                 />
               ),

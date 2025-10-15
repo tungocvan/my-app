@@ -5,8 +5,10 @@ import DetailScreen from '../../screens/DetailScreen';
 
 const HomeStack = () => {
   return (
-    <CustomStackNavigator defaultHeaderOptions={{ showMenu: true, showLogout: true }}>
-      <CustomStackNavigator.Screen name="HomeScreen" title="Trang chủ" component={HomeScreen} />
+    <CustomStackNavigator
+      defaultHeaderOptions={{ showMenu: true, showLogout: true, isSearch: true }}
+    >
+      <CustomStackNavigator.Screen name="HomeScreen" component={HomeScreen} />
       <CustomStackNavigator.Screen
         name="DetailScreen"
         title="Chi tiết sản phẩm"
