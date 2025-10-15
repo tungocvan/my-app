@@ -52,7 +52,7 @@ export const tabBarConfig = {
   // ⚙️ Cấu hình style tổng thể cho thanh tab
   tabBarStyle: {
     height: Platform.OS === 'ios' ? 80 : 70,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 12,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 18,
     paddingTop: 8,
     borderTopWidth: 1,
     borderColor: '#E5E7EB',
@@ -61,7 +61,7 @@ export const tabBarConfig = {
 
   // 🔤 Kiểu chữ
   tabBarLabelStyle: {
-    fontSize: 13,
+    fontSize: 10,
     fontWeight: '600',
     fontFamily: Fonts.bold,
   },

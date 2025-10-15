@@ -12,7 +12,7 @@ const MainNavigator = () => {
         screenOptions={({ route }) => {
           const tab = tabMenu.find((t) => t.name === route.name);
           return {
-            ...tabBarConfig, // ⬅️ Chỉ cần spread toàn bộ cấu hình
+            ...tabBarConfig,
             tabBarIcon: ({ color, focused }) => {
               if (!tab) return null;
               const iconName = focused ? tab.icon.active : tab.icon.inactive;
@@ -28,7 +28,8 @@ const MainNavigator = () => {
             component={tab.component}
             options={{
               title: tab.label,
-              tabBarButton: tab.hidden ? () => null : undefined, // 👈 ẩn tab khỏi thanh tab
+              // ✅ Nếu tab hidden thì chỉ ẩn UI, không xóa khỏi navigator
+              tabBarStyle: tab.hidden ? { display: 'none' } : undefined,
             }}
           />
         ))}
