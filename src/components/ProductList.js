@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, ActivityIndicator, StyleSheet } from 'react-native';
 import axiosClient from '../api/axiosClient';
+import { ProductGrid } from '../components/ProductGrid'; // đường dẫn tùy dự án
+
 import { PRODUCTS, BASE_URL } from '../data/url';
 import { IMG_PRODUCT_DEFAULT } from '../constants';
 
@@ -55,38 +57,7 @@ const ProductList = () => {
     );
   }
 
-  const renderItem = ({ item }) => {
-    // ✅ Ghép URL ảnh chuẩn
-    const imageUrl = (
-      item.image?.startsWith('http') ? item.image : `${BASE_URL.replace('/api', '')}/${item.image}`
-    ).trim();
-
-    // ✅ Lấy giá hiển thị
-    const price =
-      item.sale_price && item.sale_price !== '0.00' ? item.sale_price : item.regular_price;
-
-    return (
-      <View style={styles.card}>
-        <Image
-          source={{
-            uri: imageUrl || IMG_PRODUCT_DEFAULT,
-          }}
-          style={styles.image}
-        />
-        <Text style={styles.name}>{item.title}</Text>
-        <Text style={styles.price}>{parseInt(price).toLocaleString('vi-VN')} ₫</Text>
-      </View>
-    );
-  };
-
-  return (
-    <FlatList
-      data={products}
-      keyExtractor={(item) => item.id.toString()}
-      renderItem={renderItem}
-      contentContainerStyle={styles.list}
-    />
-  );
+  return <ProductGrid productsData={products} />;
 };
 
 const styles = StyleSheet.create({

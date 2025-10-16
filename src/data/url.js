@@ -1,6 +1,7 @@
 // src/data/url.js
 
 // URL cơ bản của API
+export const BASE_URL_IMG = 'https://adminlt.tungocvan.com';
 export const BASE_URL = 'https://adminlt.tungocvan.com/api';
 
 // Các endpoint

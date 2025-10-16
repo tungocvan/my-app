@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LogoutButton from '../../components/LogoutButton';
+import CartIcon from '../../components/CartIcon';
 import { useSidebar } from '../../context/SidebarContext';
 import { HEADER } from '../../constants';
 import HeaderSearchButton from '../../components/HeaderSearchButton'; // 👉 import component bạn vừa tạo
@@ -13,6 +14,7 @@ const StackHeader = ({
   showLogout,
   isText = false,
   isSearch = false,
+  isCart = false,
   navigation,
 }) => {
   const { setSidebarOpen } = useSidebar();
@@ -34,7 +36,6 @@ const StackHeader = ({
         ) : (
           <View style={styles.leftButton} />
         )}
-
         {/* Title hoặc Search Input */}
         {isSearch ? (
           <View style={{ flex: 1, marginHorizontal: 8 }}>
@@ -46,7 +47,7 @@ const StackHeader = ({
         ) : (
           title && <Text style={styles.title}>{title}</Text>
         )}
-
+        {isCart && <CartIcon hanldePress={() => navigation.navigate('CartTab')} />}
         {/* Logout Right */}
         {showLogout ? <LogoutButton isText={isText} /> : <View style={{ width: 40 }} />}
       </View>

@@ -6,6 +6,7 @@ import AboutStack from '../navigation/stacks/AboutStack';
 import ProfileStack from '../navigation/stacks/ProfileStack';
 import SettingStack from '../navigation/stacks/SettingStack';
 import SearchStack from '../navigation/stacks/SearchStack';
+import CartStack from '../navigation/stacks/CartStack';
 
 const tabMenu = [
   {
@@ -38,7 +39,14 @@ const tabMenu = [
     label: 'Tìm kiếm',
     icon: { active: 'search', inactive: 'search-outline' },
     component: SearchStack,
-    hidden: false,
+    hidden: true,
+  },
+  {
+    name: 'CartTab',
+    label: 'Giỏ hàng',
+    icon: { active: 'cart', inactive: 'cart-outline' },
+    component: CartStack,
+    hidden: true,
   },
 ];
 

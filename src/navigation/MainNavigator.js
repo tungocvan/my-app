@@ -29,7 +29,7 @@ const MainNavigator = () => {
             options={{
               title: tab.label,
               // ✅ Nếu tab hidden thì chỉ ẩn UI, không xóa khỏi navigator
-              tabBarStyle: tab.hidden ? { display: 'none' } : undefined,
+              tabBarButton: tab.hidden ? () => null : undefined,
             }}
           />
         ))}

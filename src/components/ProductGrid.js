@@ -1,4 +1,3 @@
-// components/ProductGrid.js
 import React, { useState } from 'react';
 import {
   View,
@@ -11,50 +10,22 @@ import {
   Animated,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../redux/slices/cartSlice';
+import { BASE_URL_IMG } from '../data/url';
 
 const { width } = Dimensions.get('window');
 const GAP = 16;
 const NUM_COLUMNS = 2;
 const ITEM_WIDTH = (width - GAP * (NUM_COLUMNS + 1)) / NUM_COLUMNS;
 
-const productsData = [
-  {
-    id: '1',
-    title: 'Áo Thun Nam Trắng',
-    regular_price: 200000,
-    sale_price: 150000,
-    image: 'https://picsum.photos/id/1011/300/300',
-  },
-  {
-    id: '2',
-    title: 'Giày Thể Thao Nữ',
-    regular_price: 500000,
-    sale_price: 500000,
-    image: 'https://picsum.photos/id/1025/300/300',
-  },
-  {
-    id: '3',
-    title: 'Balo Du Lịch',
-    regular_price: 350000,
-    sale_price: 300000,
-    image: 'https://picsum.photos/id/1040/300/300',
-  },
-  {
-    id: '4',
-    title: 'Đồng Hồ Nam',
-    regular_price: 800000,
-    sale_price: 650000,
-    image: 'https://picsum.photos/id/1050/300/300',
-  },
-];
-
 const ProductItem = ({ item }) => {
+  const dispatch = useDispatch();
   const [quantity, setQuantity] = useState(0);
   const [favorite, setFavorite] = useState(false);
-
-  // animation scale khi nhấn
   const scaleAnim = useState(new Animated.Value(1))[0];
 
+  // Hiệu ứng trái tim
   const onPressHeart = () => {
     Animated.sequence([
       Animated.timing(scaleAnim, {
@@ -71,22 +42,38 @@ const ProductItem = ({ item }) => {
     setFavorite(!favorite);
   };
 
-  const discountPercent = Math.round(
-    ((item.regular_price - item.sale_price) / item.regular_price) * 100,
-  );
+  // ✅ Chỉ tính % giảm khi sale_price < regular_price
+  const discountPercent =
+    item.sale_price < item.regular_price
+      ? Math.round(((item.regular_price - item.sale_price) / item.regular_price) * 100)
+      : 0;
+
+  const hasDiscount = discountPercent > 0;
+
+  const handleAddToCart = () => {
+    if (quantity > 0) {
+      dispatch(
+        addToCart({
+          id: item.id,
+          name: item.title,
+          image: item.image,
+          price: item.sale_price < item.regular_price ? item.sale_price : item.regular_price,
+          quantity,
+        }),
+      );
+      setQuantity(0);
+    }
+  };
 
   return (
     <View style={styles.itemContainer}>
       {/* Dòng 1: KM % + Yêu thích */}
       <View style={styles.rowTop}>
-        {/* Badge KM chỉ hiển thị nếu >0% */}
-        {discountPercent > 0 && (
+        {hasDiscount && (
           <View style={styles.promoBadge}>
-            <Text style={styles.promoText}>{discountPercent}%</Text>
+            <Text style={styles.promoText}>-{discountPercent}%</Text>
           </View>
         )}
-
-        {/* Trái tim luôn ở góc phải */}
         <Pressable onPress={onPressHeart}>
           <Animated.View
             style={[
@@ -102,21 +89,35 @@ const ProductItem = ({ item }) => {
         </Pressable>
       </View>
 
-      {/* Hình ảnh vuông 1:1 */}
-      <Image source={{ uri: item.image }} style={styles.productImage} resizeMode="cover" />
+      {/* Ảnh sản phẩm */}
+      <Image
+        source={{ uri: BASE_URL_IMG + '/' + item.image }}
+        style={styles.productImage}
+        resizeMode="cover"
+      />
 
-      {/* Giá */}
-      <View style={styles.rowPrice}>
-        <Text style={styles.salePrice}>{item.sale_price.toLocaleString()}đ</Text>
-        <Text style={styles.regularPrice}>{item.regular_price.toLocaleString()}đ</Text>
-      </View>
+      {/* 💰 Giá sản phẩm */}
+      {hasDiscount ? (
+        <View style={styles.rowPrice}>
+          <Text style={styles.salePrice}>{Number(item.sale_price).toLocaleString('vi-VN')}đ</Text>
+          <Text style={styles.regularPrice}>
+            {Number(item.regular_price).toLocaleString('vi-VN')}đ
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.rowPrice}>
+          <Text style={[styles.salePrice, { color: '#333' }]}>
+            {Number(item.regular_price).toLocaleString('vi-VN')}đ
+          </Text>
+        </View>
+      )}
 
-      {/* Title */}
+      {/* Tên sản phẩm */}
       <Text style={styles.title} numberOfLines={2}>
         {item.title}
       </Text>
 
-      {/* Số lượng full-width, nền trắng, border mỏng */}
+      {/* Bộ đếm số lượng */}
       <View style={styles.rowQuantity}>
         <Pressable
           style={[styles.qtyButton, styles.qtyMinus]}
@@ -138,15 +139,22 @@ const ProductItem = ({ item }) => {
           <Text style={styles.qtyButtonText}>+</Text>
         </Pressable>
       </View>
+
+      {/* Nút Thêm vào giỏ */}
+      {quantity > 0 && (
+        <Pressable style={styles.addButton} onPress={handleAddToCart}>
+          <Text style={styles.addButtonText}>Thêm vào giỏ</Text>
+        </Pressable>
+      )}
     </View>
   );
 };
 
-export const ProductGrid = () => {
+export const ProductGrid = ({ productsData = [] }) => {
   return (
     <FlatList
       data={productsData}
-      keyExtractor={(item) => item.id}
+      keyExtractor={(item) => item.id.toString()}
       numColumns={NUM_COLUMNS}
       columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: GAP }}
       contentContainerStyle={{ padding: GAP }}
@@ -161,7 +169,7 @@ const styles = StyleSheet.create({
     width: ITEM_WIDTH,
     backgroundColor: '#fff',
     borderRadius: 8,
-    padding: 8,
+    padding: 10,
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },
@@ -170,32 +178,31 @@ const styles = StyleSheet.create({
   },
   rowTop: {
     flexDirection: 'row',
-    justifyContent: 'space-between', // luôn đẩy trái tim sang phải
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
-
   promoBadge: {
     backgroundColor: 'red',
     borderRadius: 4,
-    paddingHorizontal: 4,
+    paddingHorizontal: 5,
     paddingVertical: 2,
   },
   promoText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
   },
   heartButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     justifyContent: 'center',
     alignItems: 'center',
   },
   productImage: {
     width: '100%',
-    aspectRatio: 1, // vuông 1:1
+    aspectRatio: 1,
     borderRadius: 6,
     backgroundColor: '#f0f0f0',
     marginBottom: 6,
@@ -208,7 +215,8 @@ const styles = StyleSheet.create({
   salePrice: {
     color: 'red',
     fontWeight: 'bold',
-    marginRight: 8,
+    fontSize: 15,
+    marginRight: 6,
   },
   regularPrice: {
     color: '#999',
@@ -218,29 +226,28 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     fontWeight: '500',
-    marginBottom: 4,
+    marginBottom: 6,
+    color: '#222',
   },
   rowQuantity: {
     flexDirection: 'row',
-    width: '100%',
-    marginTop: 8,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#ddd', // border mỏng
-    backgroundColor: '#fafafa', // nền trắng nhẹ
+    borderColor: '#ddd',
+    backgroundColor: '#fafafa',
     overflow: 'hidden',
   },
   qtyButton: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 8,
   },
   qtyMinus: {
-    backgroundColor: '#ffebee', // màu nổi bật cho nút -
+    backgroundColor: '#ffebee',
   },
   qtyPlus: {
-    backgroundColor: '#e8f5e9', // màu nổi bật cho nút +
+    backgroundColor: '#e8f5e9',
   },
   qtyButtonText: {
     fontSize: 18,
@@ -255,5 +262,20 @@ const styles = StyleSheet.create({
   qtyText: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#000',
+  },
+  addButton: {
+    marginTop: 8,
+    backgroundColor: '#2563eb',
+    borderRadius: 6,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });
+
+export default ProductGrid;
