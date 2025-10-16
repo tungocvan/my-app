@@ -1,4 +1,4 @@
-﻿import React from 'react';
+﻿import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
@@ -12,13 +12,16 @@ const CheckoutScreen = () => {
   const { totalPrice } = useSelector((state) => state.cart);
   const { user, token } = useSelector((state) => state.user);
   const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleConfirmOrder = async () => {
+    // tôi muốn thực hiện ở đây disaable xác nhận thanh toán
     if (cartItems.length === 0) {
       Alert.alert('Thông báo', 'Giỏ hàng của bạn đang trống.');
       return;
     }
 
+    setIsSubmitting(true);
     // ✅ Tạo object đơn hàng
     const order = {
       email: user?.email || 'guest@example.com',
@@ -51,6 +54,8 @@ const CheckoutScreen = () => {
     } catch (error) {
       console.error('❌ Lỗi khi tạo đơn hàng:', error.response?.data || error.message);
       Alert.alert('Lỗi', 'Không thể tạo đơn hàng. Vui lòng thử lại.');
+    } finally {
+      setIsSubmitting(false); // ✅ bật lại nút sau khi xong
     }
   };
 
@@ -84,8 +89,14 @@ const CheckoutScreen = () => {
           <Text style={styles.buttonText}>Quay lại</Text>
         </Pressable>
 
-        <Pressable style={[styles.button, styles.confirmButton]} onPress={handleConfirmOrder}>
-          <Text style={styles.buttonText}>Xác nhận thanh toán</Text>
+        <Pressable
+          style={[styles.button, styles.confirmButton, isSubmitting && { opacity: 0.6 }]}
+          onPress={handleConfirmOrder}
+          disabled={isSubmitting || cartItems.length === 0} // ✅ disabled khi đang gửi hoặc giỏ rỗng
+        >
+          <Text style={styles.buttonText}>
+            {isSubmitting ? 'Đang xử lý...' : 'Xác nhận thanh toán'}
+          </Text>
         </Pressable>
       </View>
     </View>

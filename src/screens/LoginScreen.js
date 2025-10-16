@@ -11,6 +11,7 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -18,11 +19,21 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
-    const result = await dispatch(loginUser({ email, password }));
-    if (result.meta.requestStatus === 'fulfilled') {
-      dispatch(setUser(result.payload));
-    } else {
-      Alert.alert('Thất bại', result.payload || 'Đăng nhập không thành công');
+    setIsSubmitting(true); // ✅ disable nút ngay khi bắt đầu
+
+    try {
+      const result = await dispatch(loginUser({ email, password }));
+      if (result.meta.requestStatus === 'fulfilled') {
+        dispatch(setUser(result.payload));
+        // Bạn có thể navigate tới màn hình Home
+        // navigation.replace('HomeTab');
+      } else {
+        Alert.alert('Thất bại', result.payload || 'Đăng nhập không thành công');
+      }
+    } catch (error) {
+      Alert.alert('Lỗi', 'Có lỗi xảy ra. Vui lòng thử lại.');
+    } finally {
+      setIsSubmitting(false); // ✅ bật lại nút sau khi xong
     }
   };
 
@@ -86,8 +97,12 @@ const LoginScreen = ({ navigation }) => {
           <Text style={styles.forgot}>Quên mật khẩu?</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Đăng nhập</Text>
+        <TouchableOpacity
+          style={[styles.button, isSubmitting && { opacity: 0.6 }]}
+          onPress={handleLogin}
+          disabled={isSubmitting} // ✅ disable khi đang gửi
+        >
+          <Text style={styles.buttonText}>{isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}</Text>
         </TouchableOpacity>
 
         <GoogleLoginButton onLoginSuccess={() => {}} />
