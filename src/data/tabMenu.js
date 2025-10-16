@@ -7,6 +7,9 @@ import ProfileStack from '../navigation/stacks/ProfileStack';
 import SettingStack from '../navigation/stacks/SettingStack';
 import SearchStack from '../navigation/stacks/SearchStack';
 import CartStack from '../navigation/stacks/CartStack';
+import DealsStack from '../navigation/stacks/DealsStack';
+import OrderStack from '../navigation/stacks/OrderStack';
+import QuickOrderStack from '../navigation/stacks/QuickOrderStack';
 
 const tabMenu = [
   {
@@ -16,23 +19,43 @@ const tabMenu = [
     component: HomeStack,
   },
   {
+    name: 'OrderTab',
+    label: 'Đơn hàng',
+    icon: { active: 'bus-outline', inactive: 'car-outline' },
+    component: OrderStack,
+  },
+  {
+    name: 'QuickOrderTab',
+    label: 'Đặt nhanh',
+    icon: { active: 'flash-outline', inactive: 'flash-outline' },
+    component: QuickOrderStack,
+  },
+  {
+    name: 'DealsTab',
+    label: 'Khuyến Mãi',
+    icon: { active: 'gift-outline', inactive: 'gift-outline' },
+    component: DealsStack,
+  },
+  {
     name: 'AboutTab',
     label: 'Giới thiệu',
     icon: { active: 'information-circle', inactive: 'information-circle-outline' },
     component: AboutStack,
+    hidden: true,
   },
   {
     name: 'ProfileTab',
     label: 'Tài khoản',
     icon: { active: 'person', inactive: 'person-outline' },
     component: ProfileStack,
-    // hidden: true, // 🔹 Ví dụ: ẩn tab này
+    hidden: true, // 🔹 Ví dụ: ẩn tab này
   },
   {
     name: 'SettingTab',
     label: 'Cài đặt',
     icon: { active: 'settings', inactive: 'settings-outline' },
     component: SettingStack,
+    hidden: true,
   },
   {
     name: 'SearchTab',

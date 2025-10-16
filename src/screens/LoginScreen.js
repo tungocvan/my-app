@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { loginUser, setUser } from '../redux/slices/userSlice';
-import GoogleLoginButton from '../components/GoogleLoginButton';
+// import GoogleLoginButton from '../components/GoogleLoginButton';
 
 const LoginScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -105,7 +105,7 @@ const LoginScreen = ({ navigation }) => {
           <Text style={styles.buttonText}>{isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}</Text>
         </TouchableOpacity>
 
-        <GoogleLoginButton onLoginSuccess={() => {}} />
+        {/* <GoogleLoginButton onLoginSuccess={() => {}} /> */}
 
         <TouchableOpacity onPress={() => navigation.navigate('RegisterScreen')}>
           <Text style={styles.link}>Chưa có tài khoản? Đăng ký ngay</Text>
@@ -116,7 +116,7 @@ const LoginScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24 },
+  container: { flex: 1, justifyContent: 'flex-start', padding: 24, paddingVertical: 50 },
   header: { alignItems: 'center', marginBottom: 40 },
   logo: { width: 128, height: 128, marginBottom: 16 },
   welcome: { fontSize: 18, fontWeight: '700', color: '#1A2E05' },

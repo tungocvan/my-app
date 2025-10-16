@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LogoutButton from '../../components/LogoutButton';
+// import LogoutButton from '../../components/LogoutButton';
 import CartIcon from '../../components/CartIcon';
 import { useSidebar } from '../../context/SidebarContext';
 import { HEADER } from '../../constants';
@@ -11,7 +11,7 @@ import HeaderSearchButton from '../../components/HeaderSearchButton'; // 👉 im
 const StackHeader = ({
   title,
   showMenu,
-  showLogout,
+  // showLogout,
   isText = false,
   isSearch = false,
   isCart = false,
@@ -21,9 +21,9 @@ const StackHeader = ({
 
   // Tùy chọn justifyContent
   let justify = 'space-between';
-  if (showMenu && !showLogout) justify = 'flex-start';
-  if (!showMenu && showLogout) justify = 'flex-end';
-  if (!showMenu && !showLogout) justify = 'center';
+  // if (showMenu && !showLogout) justify = 'flex-start';
+  // if (!showMenu && showLogout) justify = 'flex-end';
+  // if (!showMenu && !showLogout) justify = 'center';
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -49,7 +49,7 @@ const StackHeader = ({
         )}
         {isCart && <CartIcon hanldePress={() => navigation.navigate('CartTab')} />}
         {/* Logout Right */}
-        {showLogout ? <LogoutButton isText={isText} /> : <View style={{ width: 40 }} />}
+        {/* {showLogout ? <LogoutButton isText={isText} /> : <View style={{ width: 40 }} />} */}
       </View>
     </SafeAreaView>
   );
