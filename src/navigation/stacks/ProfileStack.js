@@ -15,7 +15,7 @@ const ProfileStack = () => {
         name="EditProfileScreen"
         title="Chỉnh sửa thông tin"
         component={EditProfileScreen}
-        options={{ showLogout: false }} // override showLogout riêng cho DetailScreen
+        options={{ showLogout: false, showMenu: false, showBack: true }} // override showLogout riêng cho DetailScreen
       />
     </CustomStackNavigator>
   );

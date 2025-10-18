@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // import LogoutButton from '../../components/LogoutButton';
 import CartIcon from '../../components/CartIcon';
+import BackButton from '../../components/BackButton';
 import { useSidebar } from '../../context/SidebarContext';
 import { HEADER } from '../../constants';
 import HeaderSearchButton from '../../components/HeaderSearchButton'; // 👉 import component bạn vừa tạo
@@ -15,6 +16,7 @@ const StackHeader = ({
   isText = false,
   isSearch = false,
   isCart = false,
+  showBack = false,
   navigation,
 }) => {
   const { setSidebarOpen } = useSidebar();
@@ -29,6 +31,7 @@ const StackHeader = ({
     <SafeAreaView style={styles.safe}>
       <View style={[styles.container, { justifyContent: justify }]}>
         {/* Menu Left */}
+        {showBack && <BackButton />}
         {showMenu ? (
           <TouchableOpacity onPress={() => setSidebarOpen(true)} style={styles.leftButton}>
             <Ionicons name="menu-outline" size={HEADER.ICON_SIZE} color={HEADER.ICON_COLOR} />

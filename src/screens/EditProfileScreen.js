@@ -15,7 +15,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { useSelector } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+
 import axiosClient from '../api/axiosClient';
 import { USER_OPTIONS, BASE_URL } from '../data/url';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -23,7 +23,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const DEFAULT_AVATAR = 'https://adminlt.tungocvan.com/images/user.jpg';
 
 const EditProfileScreen = () => {
-  const navigation = useNavigation();
   const [userId, setUserId] = useState(null);
   const user = useSelector((state) => state.user.user);
 
@@ -327,10 +326,6 @@ const EditProfileScreen = () => {
             <Text style={styles.saveText}>💾 Lưu thay đổi</Text>
           )}
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.cancelText}>Quay về</Text>
-        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
@@ -405,6 +400,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginTop: 10,
     alignItems: 'center',
+    marginBottom: 10,
   },
   saveText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   cancelButton: {

@@ -29,6 +29,7 @@ const CustomStackNavigator = ({ children, defaultHeaderOptions = {} }) => {
         const showLogout = options.showLogout ?? defaultHeaderOptions.showLogout ?? false;
         const isSearch = options.isSearch ?? defaultHeaderOptions.isSearch ?? false;
         const isCart = options.isCart ?? defaultHeaderOptions.isCart ?? true;
+        const showBack = options.showBack ?? defaultHeaderOptions.showBack ?? false;
 
         return (
           <Stack.Screen
@@ -46,6 +47,7 @@ const CustomStackNavigator = ({ children, defaultHeaderOptions = {} }) => {
                         showLogout={showLogout}
                         isSearch={isSearch}
                         isCart={isCart}
+                        showBack={showBack}
                         {...headerProps}
                       />
                     ),

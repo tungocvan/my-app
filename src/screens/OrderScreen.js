@@ -8,11 +8,13 @@ import {
   TouchableOpacity,
   TextInput,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
 import { ORDERS } from '../data/url';
 
 const OrderScreen = () => {
+  const navigation = useNavigation();
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +31,7 @@ const OrderScreen = () => {
       setLoading(true);
       const response = await axios.post(ORDERS);
       const data = response.data.data || [];
+      //console.log(data[0]);
       setOrders(data);
       setFilteredOrders(data);
     } catch (err) {
@@ -94,15 +97,29 @@ const OrderScreen = () => {
     setFilteredOrders(orders);
   };
 
+  // Hàm format tự động
+  const formatDateInput = (text) => {
+    let digits = text.replace(/\D/g, '');
+
+    if (digits.length > 2) digits = digits.slice(0, 2) + '/' + digits.slice(2);
+    if (digits.length > 4) digits = digits.slice(0, 5) + '/' + digits.slice(5, 9); // dd/mm/yyyy max 4 chữ số năm
+    if (digits.length > 10) digits = digits.slice(0, 10); // hạn chế max 10 ký tự
+
+    return digits;
+  };
+
   // Render item
   const renderOrderItem = ({ item }) => (
-    <TouchableOpacity style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate('OrderDetailScreen', { order: item })}
+    >
       <View style={styles.row}>
         <Ionicons name="receipt-outline" size={22} color="#007AFF" />
         <Text style={styles.orderId}>Đơn hàng #{item.id}</Text>
       </View>
 
-      <Text style={styles.email}>{item.email}</Text>
+      <Text style={styles.email}>{item.user.name}</Text>
 
       <View style={styles.orderInfo}>
         <Text style={styles.label}>Tổng tiền:</Text>
@@ -124,18 +141,6 @@ const OrderScreen = () => {
       <View style={styles.orderInfo}>
         <Text style={styles.label}>Ngày đặt:</Text>
         <Text style={styles.date}>{new Date(item.created_at).toLocaleString('vi-VN')}</Text>
-      </View>
-
-      <View style={styles.detailBox}>
-        {item.order_detail.map((detail, i) => (
-          <View key={i} style={styles.detailRow}>
-            <Text style={styles.detailTitle}>{detail.title}</Text>
-            <Text style={styles.detailQty}>x{detail.quantity}</Text>
-            <Text style={styles.detailPrice}>
-              {parseInt(detail.total).toLocaleString('vi-VN')} ₫
-            </Text>
-          </View>
-        ))}
       </View>
     </TouchableOpacity>
   );
@@ -162,8 +167,6 @@ const OrderScreen = () => {
   // UI hiển thị danh sách
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Danh sách đơn hàng</Text>
-
       {/* Bộ lọc trạng thái */}
       <View style={styles.filterRow}>
         {['pending', 'confirmed'].map((st) => (
@@ -186,7 +189,7 @@ const OrderScreen = () => {
           <View style={styles.inputWrapper}>
             <TextInput
               value={fromDate}
-              onChangeText={setFromDate}
+              onChangeText={(text) => setFromDate(formatDateInput(text))}
               placeholder="dd/mm/yyyy"
               keyboardType="number-pad"
               style={styles.input}
@@ -204,7 +207,7 @@ const OrderScreen = () => {
           <View style={styles.inputWrapper}>
             <TextInput
               value={toDate}
-              onChangeText={setToDate}
+              onChangeText={(text) => setToDate(formatDateInput(text))}
               placeholder="dd/mm/yyyy"
               keyboardType="number-pad"
               style={styles.input}
@@ -303,6 +306,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
     padding: 10,
     borderRadius: 10,
+    marginTop: 14,
+    marginHorizontal: 5,
   },
   resetButton: {
     flexDirection: 'row',
