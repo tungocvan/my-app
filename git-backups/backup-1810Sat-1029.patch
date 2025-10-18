@@ -1,0 +1,390 @@
+diff --git a/src/screens/ProfileScreen.js b/src/screens/ProfileScreen.js
+index fb2185e..1507066 100644
+--- a/src/screens/ProfileScreen.js
++++ b/src/screens/ProfileScreen.js
+@@ -1,26 +1,98 @@
+ import React from 'react';
+-import { View, Text } from 'react-native';
++import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
++import { Ionicons } from '@expo/vector-icons';
+ import { useSelector } from 'react-redux';
++import { useNavigation } from '@react-navigation/native';
+ import LogoutButton from '../components/LogoutButton';
+ 
+ const ProfileScreen = () => {
+-  // Lấy user từ Redux store
+   const user = useSelector((state) => state.user.user);
+-  // console.log(user);
++  const navigation = useNavigation();
++
++  const handleViewProfile = () => {
++    navigation.navigate('EditProfileScreen', { user });
++  };
++
+   if (!user) {
+     return (
+-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
++      <View style={styles.centered}>
+         <Text>Chưa đăng nhập</Text>
+       </View>
+     );
+   }
+ 
++  // ✅ MẢNG CHỨA THÔNG TIN NGƯỜI DÙNG
++  const userInfo = [
++    {
++      icon: 'business-outline',
++      label: 'Address',
++      value: user.address || 'Demo Street 123, Demo City 04312, NJ',
++    },
++    {
++      icon: 'call-outline',
++      label: 'Phone #',
++      value: user.phone || '+084)903 971 949',
++    },
++    {
++      icon: 'mail-outline',
++      label: 'Email',
++      value: user.email || 'nicole@example.com',
++    },
++  ];
++
+   return (
+-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 10 }}>
+-      <Text style={{ fontSize: 22 }}>👤 Hồ sơ cá nhân</Text>
+-      <Text style={{ fontSize: 18 }}>Tên: {user.name}</Text>
+-      <Text style={{ fontSize: 16 }}>Email: {user.email}</Text>
+-      <Text style={{ fontSize: 16 }}>Username: {user.username}</Text>
++    <View style={styles.container}>
++      {/* Card */}
++      <View style={styles.card}>
++        {/* Header */}
++        <View style={styles.header}>
++          <Text style={styles.headerText}>Digital Strategist</Text>
++        </View>
++
++        {/* Body */}
++        <View style={styles.body}>
++          <View style={styles.leftCol}>
++            <Text style={styles.name}>{user.name || 'Nicole Pearson'}</Text>
++            <Text style={styles.about}>
++              <Text style={styles.bold}>About: </Text>Web Designer / UX / Graphic Artist / Coffee
++              Lover
++            </Text>
++
++            {/* ✅ Render tự động từ mảng userInfo */}
++            <View style={styles.infoList}>
++              {userInfo.map((item, index) => (
++                <View key={index} style={styles.infoItem}>
++                  <Ionicons name={item.icon} size={16} color="#555" style={styles.icon} />
++                  <Text style={styles.infoText}>
++                    {item.label}: {item.value}
++                  </Text>
++                </View>
++              ))}
++            </View>
++          </View>
++
++          {/* Avatar */}
++          <View style={styles.rightCol}>
++            <Image
++              source={{
++                uri: user.avatar || 'https://randomuser.me/api/portraits/women/44.jpg',
++              }}
++              style={styles.avatar}
++            />
++          </View>
++        </View>
++
++        {/* Footer */}
++        <View style={styles.footer}>
++          <TouchableOpacity style={[styles.btn, styles.btnTeal]}>
++            <Ionicons name="chatbubble-ellipses-outline" size={18} color="#fff" />
++          </TouchableOpacity>
++          <TouchableOpacity style={[styles.btn, styles.btnPrimary]} onPress={handleViewProfile}>
++            <Ionicons name="person-outline" size={18} color="#fff" />
++            <Text style={styles.btnText}>View Profile</Text>
++          </TouchableOpacity>
++        </View>
++      </View>
+ 
+       <LogoutButton />
+     </View>
+@@ -28,3 +100,114 @@ const ProfileScreen = () => {
+ };
+ 
+ export default ProfileScreen;
++
++const styles = StyleSheet.create({
++  container: {
++    flex: 1,
++    backgroundColor: '#f4f6f9',
++    alignItems: 'center',
++    justifyContent: 'flex-start',
++    padding: 16,
++  },
++  centered: {
++    flex: 1,
++    alignItems: 'center',
++    justifyContent: 'center',
++  },
++  card: {
++    width: '100%',
++    backgroundColor: '#fff',
++    borderRadius: 12,
++    shadowColor: '#000',
++    shadowOpacity: 0.1,
++    shadowRadius: 6,
++    elevation: 3,
++    overflow: 'hidden',
++  },
++  header: {
++    backgroundColor: '#f0f0f0',
++    paddingVertical: 10,
++    paddingHorizontal: 16,
++    borderBottomWidth: 1,
++    borderBottomColor: '#ddd',
++  },
++  headerText: {
++    fontSize: 14,
++    color: '#888',
++  },
++  body: {
++    flexDirection: 'row',
++    padding: 16,
++  },
++  leftCol: {
++    flex: 7,
++    justifyContent: 'center',
++  },
++  rightCol: {
++    flex: 5,
++    alignItems: 'center',
++    justifyContent: 'center',
++  },
++  name: {
++    fontSize: 20,
++    fontWeight: '700',
++    color: '#333',
++  },
++  about: {
++    marginTop: 6,
++    fontSize: 14,
++    color: '#666',
++  },
++  bold: {
++    fontWeight: '600',
++  },
++  infoList: {
++    marginTop: 10,
++  },
++  infoItem: {
++    flexDirection: 'row',
++    alignItems: 'center',
++    marginVertical: 3,
++  },
++  icon: {
++    marginRight: 6,
++  },
++  infoText: {
++    color: '#555',
++    fontSize: 13,
++    flexShrink: 1,
++  },
++  avatar: {
++    width: 90,
++    height: 90,
++    borderRadius: 45,
++  },
++  footer: {
++    flexDirection: 'row',
++    justifyContent: 'flex-end',
++    paddingHorizontal: 16,
++    paddingVertical: 10,
++    borderTopWidth: 1,
++    borderTopColor: '#eee',
++    gap: 8,
++  },
++  btn: {
++    flexDirection: 'row',
++    alignItems: 'center',
++    paddingVertical: 6,
++    paddingHorizontal: 12,
++    borderRadius: 8,
++  },
++  btnTeal: {
++    backgroundColor: '#20c997',
++  },
++  btnPrimary: {
++    backgroundColor: '#007bff',
++  },
++  btnText: {
++    color: '#fff',
++    marginLeft: 4,
++    fontSize: 14,
++    fontWeight: '500',
++  },
++});
+diff --git a/yarn.lock b/yarn.lock
+index fff5a0f..7c308d2 100644
+--- a/yarn.lock
++++ b/yarn.lock
+@@ -737,7 +737,20 @@
+     "@babel/parser" "^7.27.2"
+     "@babel/types" "^7.27.1"
+ 
+-"@babel/traverse--for-generate-function-map@npm:@babel/traverse@^7.25.3", "@babel/traverse@^7.23.2", "@babel/traverse@^7.25.3", "@babel/traverse@^7.27.1", "@babel/traverse@^7.28.0", "@babel/traverse@^7.28.3", "@babel/traverse@^7.28.4":
++"@babel/traverse--for-generate-function-map@npm:@babel/traverse@^7.25.3":
++  version "7.28.4"
++  resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.28.4.tgz#8d456101b96ab175d487249f60680221692b958b"
++  integrity sha512-YEzuboP2qvQavAcjgQNVgsvHIDv6ZpwXvcvjmyySP2DIMuByS/6ioU5G9pYrWHM6T2YDfc7xga9iNzYOs12CFQ==
++  dependencies:
++    "@babel/code-frame" "^7.27.1"
++    "@babel/generator" "^7.28.3"
++    "@babel/helper-globals" "^7.28.0"
++    "@babel/parser" "^7.28.4"
++    "@babel/template" "^7.27.2"
++    "@babel/types" "^7.28.4"
++    debug "^4.3.1"
++
++"@babel/traverse@^7.23.2", "@babel/traverse@^7.25.3", "@babel/traverse@^7.27.1", "@babel/traverse@^7.28.0", "@babel/traverse@^7.28.3", "@babel/traverse@^7.28.4":
+   version "7.28.4"
+   resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.28.4.tgz#8d456101b96ab175d487249f60680221692b958b"
+   integrity sha512-YEzuboP2qvQavAcjgQNVgsvHIDv6ZpwXvcvjmyySP2DIMuByS/6ioU5G9pYrWHM6T2YDfc7xga9iNzYOs12CFQ==
+@@ -1611,9 +1624,9 @@
+   integrity sha512-Klz949h02Gz2uZCMGwDUSDS1YBlTdDDgbWHi+81l29tQALUtvz4rAYi5uoVhE5Lagoq6DeqAUlbrHvW/mXDgdQ==
+ 
+ "@types/node@*":
+-  version "24.7.2"
+-  resolved "https://registry.yarnpkg.com/@types/node/-/node-24.7.2.tgz#5adf66b6e2ac5cab1d10a2ad3682e359cb652f4a"
+-  integrity sha512-/NbVmcGTP+lj5oa4yiYxxeBjRivKQ5Ns1eSZeB99ExsEQ6rX5XYU1Zy/gGxY/ilqtD4Etx9mKyrPxZRetiahhA==
++  version "24.8.1"
++  resolved "https://registry.yarnpkg.com/@types/node/-/node-24.8.1.tgz#74c8ae00b045a0a351f2837ec00f25dfed0053be"
++  integrity sha512-alv65KGRadQVfVcG69MuB4IzdYVpRwMG/mq8KWOaoOdyY617P5ivaDiMCGOFDWD2sAn5Q0mR3mRtUOgm99hL9Q==
+   dependencies:
+     undici-types "~7.14.0"
+ 
+@@ -2038,9 +2051,9 @@ babel-plugin-react-compiler@^1.0.0:
+     "@babel/types" "^7.26.0"
+ 
+ babel-plugin-react-native-web@~0.21.0:
+-  version "0.21.1"
+-  resolved "https://registry.yarnpkg.com/babel-plugin-react-native-web/-/babel-plugin-react-native-web-0.21.1.tgz#0147f1c716119025047475ae3f542ffdacea7d82"
+-  integrity sha512-7XywfJ5QIRMwjOL+pwJt2w47Jmi5fFLvK7/So4fV4jIN6PcRbylCp9/l3cJY4VJbSz3lnWTeHDTD1LKIc1C09Q==
++  version "0.21.2"
++  resolved "https://registry.yarnpkg.com/babel-plugin-react-native-web/-/babel-plugin-react-native-web-0.21.2.tgz#d2f7fd673278da82577aa583457edb55d9cccbe0"
++  integrity sha512-SPD0J6qjJn8231i0HZhlAGH6NORe+QvRSQM2mwQEzJ2Fb3E4ruWTiiicPlHjmeWShDXLcvoorOCXjeR7k/lyWA==
+ 
+ babel-plugin-syntax-hermes-parser@0.29.1, babel-plugin-syntax-hermes-parser@^0.29.1:
+   version "0.29.1"
+@@ -2124,9 +2137,9 @@ base64-js@^1.2.3, base64-js@^1.3.0, base64-js@^1.3.1, base64-js@^1.5.1:
+   integrity sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==
+ 
+ baseline-browser-mapping@^2.8.9:
+-  version "2.8.16"
+-  resolved "https://registry.yarnpkg.com/baseline-browser-mapping/-/baseline-browser-mapping-2.8.16.tgz#e17789673e7f4b7654f81ab2ef25e96ab6a895f9"
+-  integrity sha512-OMu3BGQ4E7P1ErFsIPpbJh0qvDudM/UuJeHgkAvfWe+0HFJCXh+t/l8L6fVLR55RI/UbKrVLnAXZSVwd9ysWYw==
++  version "2.8.17"
++  resolved "https://registry.yarnpkg.com/baseline-browser-mapping/-/baseline-browser-mapping-2.8.17.tgz#85aff3f7dd6326ea25b77ce834b96bb698545dc6"
++  integrity sha512-j5zJcx6golJYTG6c05LUZ3Z8Gi+M62zRT/ycz4Xq4iCOdpcxwg7ngEYD4KA0eWZC7U17qh/Smq8bYbACJ0ipBA==
+ 
+ better-opn@~3.0.2:
+   version "3.0.2"
+@@ -2285,9 +2298,9 @@ camelcase@^6.2.0, camelcase@^6.3.0:
+   integrity sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==
+ 
+ caniuse-lite@^1.0.30001746:
+-  version "1.0.30001750"
+-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001750.tgz#c229f82930033abd1502c6f73035356cf528bfbc"
+-  integrity sha512-cuom0g5sdX6rw00qOoLNSFCJ9/mYIsuSOA+yzpDw8eopiFqcVwQvZHqov0vmEighRxX++cfC0Vg1G+1Iy/mSpQ==
++  version "1.0.30001751"
++  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001751.tgz#dacd5d9f4baeea841641640139d2b2a4df4226ad"
++  integrity sha512-A0QJhug0Ly64Ii3eIqHu5X51ebln3k4yTUkY1j8drqpWHVreg/VLijN48cZ1bYPiqOQuqpkIKnzr/Ul8V+p6Cw==
+ 
+ chalk@^2.0.1, chalk@^2.4.2:
+   version "2.4.2"
+@@ -2735,9 +2748,9 @@ ee-first@1.1.1:
+   integrity sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==
+ 
+ electron-to-chromium@^1.5.227:
+-  version "1.5.236"
+-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.236.tgz#b29868ddec830193ff15f01db30998e4226e9dda"
+-  integrity sha512-Yi43booTJp2VteesVja4xdcDrAcVFItkD6RrxhMSuGx1kShh+raMwnKyIGNOTl68reqSxPPls6bB8LgIcrK9Gg==
++  version "1.5.237"
++  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.237.tgz#eacf61cef3f6345d0069ab427585c5a04d7084f0"
++  integrity sha512-icUt1NvfhGLar5lSWH3tHNzablaA5js3HVHacQimfP8ViEBOQv+L7DKEuHdbTZ0SKCO1ogTJTIL1Gwk9S6Qvcg==
+ 
+ emoji-regex@^8.0.0:
+   version "8.0.0"
+@@ -4988,9 +5001,9 @@ node-int64@^0.4.0:
+   integrity sha512-O5lz91xSOeoXP6DulyHfllpq+Eg00MWitZIbtPfoSEvqIHdl5gfcY6hYzDWnj0qD5tz52PI08u9qUvSVeUBeHw==
+ 
+ node-releases@^2.0.21:
+-  version "2.0.23"
+-  resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-2.0.23.tgz#2ecf3d7ba571ece05c67c77e5b7b1b6fb9e18cea"
+-  integrity sha512-cCmFDMSm26S6tQSDpBCg/NR8NENrVPhAJSf+XbxBG4rPFaaonlEoE9wHQmun+cls499TQGSb7ZyPBRlzgKfpeg==
++  version "2.0.25"
++  resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-2.0.25.tgz#95479437bd409231e03981c1f6abee67f5e962df"
++  integrity sha512-4auku8B/vw5psvTiiN9j1dAOsXvMoGqJuKJcR+dTdqiXEK20mMTk1UEo3HS16LeGQsVG6+qKTPM9u/qQ2LqATA==
+ 
+ normalize-path@^3.0.0:
+   version "3.0.0"
+@@ -6101,7 +6114,16 @@ strict-uri-encode@^2.0.0:
+   resolved "https://registry.yarnpkg.com/strict-uri-encode/-/strict-uri-encode-2.0.0.tgz#b9c7330c7042862f6b142dc274bbcc5866ce3546"
+   integrity sha512-QwiXZgpRcKkhTj2Scnn++4PKtWsH0kpzZ62L2R6c/LUVYv7hVnZqcg2+sMuT6R7Jusu1vviK/MFsu6kNJfWlEQ==
+ 
+-"string-width-cjs@npm:string-width@^4.2.0", string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.3:
++"string-width-cjs@npm:string-width@^4.2.0":
++  version "4.2.3"
++  resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
++  integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
++  dependencies:
++    emoji-regex "^8.0.0"
++    is-fullwidth-code-point "^3.0.0"
++    strip-ansi "^6.0.1"
++
++string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.3:
+   version "4.2.3"
+   resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
+   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
+@@ -6178,7 +6200,7 @@ string.prototype.trimstart@^1.0.8:
+     define-properties "^1.2.1"
+     es-object-atoms "^1.0.0"
+ 
+-"strip-ansi-cjs@npm:strip-ansi@^6.0.1", strip-ansi@^6.0.0, strip-ansi@^6.0.1:
++"strip-ansi-cjs@npm:strip-ansi@^6.0.1":
+   version "6.0.1"
+   resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
+   integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
+@@ -6192,6 +6214,13 @@ strip-ansi@^5.2.0:
+   dependencies:
+     ansi-regex "^4.1.0"
+ 
++strip-ansi@^6.0.0, strip-ansi@^6.0.1:
++  version "6.0.1"
++  resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
++  integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
++  dependencies:
++    ansi-regex "^5.0.1"
++
+ strip-ansi@^7.0.1:
+   version "7.1.2"
+   resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-7.1.2.tgz#132875abde678c7ea8d691533f2e7e22bb744dba"
+@@ -6642,7 +6671,16 @@ word-wrap@^1.2.5:
+   resolved "https://registry.yarnpkg.com/word-wrap/-/word-wrap-1.2.5.tgz#d2c45c6dd4fbce621a66f136cbe328afd0410b34"
+   integrity sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==
+ 
+-"wrap-ansi-cjs@npm:wrap-ansi@^7.0.0", wrap-ansi@^7.0.0:
++"wrap-ansi-cjs@npm:wrap-ansi@^7.0.0":
++  version "7.0.0"
++  resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
++  integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
++  dependencies:
++    ansi-styles "^4.0.0"
++    string-width "^4.1.0"
++    strip-ansi "^6.0.0"
++
++wrap-ansi@^7.0.0:
+   version "7.0.0"
+   resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
+   integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
