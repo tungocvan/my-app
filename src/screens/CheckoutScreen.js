@@ -27,8 +27,10 @@ const CheckoutScreen = () => {
       email: user?.email || 'guest@example.com',
       orderDetail: cartItems.map((item) => ({
         product_id: item.id,
-        title: item.title || item.name || item.product?.name || 'Không rõ tên', // ✅ thêm fallback
+        title:
+          item.ten_biet_duoc || item.title || item.name || item.product?.name || 'Không rõ tên', // ✅ thêm fallback
         price: item.price,
+        dvt: item.don_vi_tinh,
         quantity: item.quantity,
         total: item.price * item.quantity,
       })),
@@ -68,8 +70,9 @@ const CheckoutScreen = () => {
           cartItems.map((item) => (
             <View key={item.id} style={styles.cartItem}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.itemName}>{item.name}</Text>
+                <Text style={styles.itemName}>{item.title}</Text>
                 <Text style={styles.itemQuantity}>Số lượng: {item.quantity}</Text>
+                <Text>{item.dvt}</Text>
               </View>
               <Text style={styles.itemPrice}>{(item.price * item.quantity).toLocaleString()}đ</Text>
             </View>

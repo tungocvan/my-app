@@ -1,0 +1,60 @@
+diff --git a/src/components/ProductList.js b/src/components/ProductList.js
+index 564ec3c..05161d2 100644
+--- a/src/components/ProductList.js
++++ b/src/components/ProductList.js
+@@ -3,8 +3,7 @@ import { View, Text, FlatList, Image, ActivityIndicator, StyleSheet } from 'reac
+ import axiosClient from '../api/axiosClient';
+ import { ProductGrid } from '../components/ProductGrid'; // đường dẫn tùy dự án
+ 
+-import { PRODUCTS, BASE_URL } from '../data/url';
+-import { IMG_PRODUCT_DEFAULT } from '../constants';
++import { MEDICINES, PRODUCTS, BASE_URL } from '../data/url';
+ 
+ const ProductList = () => {
+   const [products, setProducts] = useState([]);
+diff --git a/src/data/tabMenu.js b/src/data/tabMenu.js
+index c305ace..7a3eb17 100644
+--- a/src/data/tabMenu.js
++++ b/src/data/tabMenu.js
+@@ -9,6 +9,7 @@ import SearchStack from '../navigation/stacks/SearchStack';
+ import CartStack from '../navigation/stacks/CartStack';
+ import DealsStack from '../navigation/stacks/DealsStack';
+ import OrderStack from '../navigation/stacks/OrderStack';
++import MedicineStack from '../navigation/stacks/MedicineStack';
+ import QuickOrderStack from '../navigation/stacks/QuickOrderStack';
+ 
+ const tabMenu = [
+@@ -71,6 +72,13 @@ const tabMenu = [
+     component: CartStack,
+     hidden: true,
+   },
++  {
++    name: 'MedicineTab',
++    label: 'Tân dược',
++    icon: { active: 'cart', inactive: 'cart-outline' },
++    component: MedicineStack,
++    hidden: false,
++  },
+ ];
+ 
+ export default tabMenu;
+diff --git a/src/data/url.js b/src/data/url.js
+index d9fe110..edb4a68 100644
+--- a/src/data/url.js
++++ b/src/data/url.js
+@@ -15,6 +15,7 @@ const URLS = {
+   ROLES: `${BASE_URL}/roles`,
+   PERMISSIONS: `${BASE_URL}/permissions`,
+   PRODUCTS: `${BASE_URL}/products`,
++  MEDICINES: `${BASE_URL}/medicines`,
+   ORDERS: `${BASE_URL}/orders`,
+   VERIFY: `${BASE_URL}/auth/google/verify`,
+   // Thêm các url khác ở đây
+@@ -31,6 +32,7 @@ export const {
+   ROLES,
+   PERMISSIONS,
+   PRODUCTS,
++  MEDICINES,
+   ORDERS,
+   VERIFY,
+ } = URLS;

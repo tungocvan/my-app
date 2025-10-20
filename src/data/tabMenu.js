@@ -9,6 +9,7 @@ import SearchStack from '../navigation/stacks/SearchStack';
 import CartStack from '../navigation/stacks/CartStack';
 import DealsStack from '../navigation/stacks/DealsStack';
 import OrderStack from '../navigation/stacks/OrderStack';
+import MedicineStack from '../navigation/stacks/MedicineStack';
 import QuickOrderStack from '../navigation/stacks/QuickOrderStack';
 
 const tabMenu = [
@@ -70,6 +71,13 @@ const tabMenu = [
     icon: { active: 'cart', inactive: 'cart-outline' },
     component: CartStack,
     hidden: true,
+  },
+  {
+    name: 'MedicineTab',
+    label: 'Tân dược',
+    icon: { active: 'cart', inactive: 'cart-outline' },
+    component: MedicineStack,
+    hidden: false,
   },
 ];
 

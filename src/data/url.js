@@ -16,6 +16,7 @@ const URLS = {
   ROLES: `${BASE_URL}/roles`,
   PERMISSIONS: `${BASE_URL}/permissions`,
   PRODUCTS: `${BASE_URL}/products`,
+  MEDICINES: `${BASE_URL}/medicines`,
   ORDERS: `${BASE_URL}/orders`,
   VERIFY: `${BASE_URL}/auth/google/verify`,
   // Thêm các url khác ở đây
@@ -33,6 +34,7 @@ export const {
   ROLES,
   PERMISSIONS,
   PRODUCTS,
+  MEDICINES,
   ORDERS,
   VERIFY,
 } = URLS;

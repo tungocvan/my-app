@@ -1,82 +1,80 @@
-import React from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-// Nếu dùng Expo:
-import { Feather } from '@expo/vector-icons';
-// Nếu không dùng Expo uncomment dòng dưới và comment dòng trên:
-// import Feather from 'react-native-vector-icons/Feather';
+export default function SearchInput({ placeholder = 'Tìm kiếm...', onSearch }) {
+  const [query, setQuery] = useState('');
+  const [inputAnim] = useState(new Animated.Value(0));
 
-const SearchInput = ({
-  value,
-  onChangeText,
-  placeholder = 'Tìm kiếm...',
-  onClear,
-  containerStyle,
-  inputStyle,
-  iconSize = 18,
-  iconColor = '#6b7280',
-  rounded = 8,
-  showClear = true,
-  ...props
-}) => {
+  // Hiệu ứng khi nhập
+  useEffect(() => {
+    Animated.timing(inputAnim, {
+      toValue: query.length > 0 ? 1 : 0,
+      duration: 150,
+      useNativeDriver: false,
+    }).start();
+  }, [query]);
+
+  // Tự động gọi tìm kiếm khi đủ 3 ký tự
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (query.length >= 3) {
+        onSearch(query.trim());
+      } else if (query.length === 0) {
+        onSearch(''); // reset
+      }
+    }, 400); // debounce nhẹ tránh spam API
+    return () => clearTimeout(delayDebounce);
+  }, [query]);
+
   return (
-    <View style={[styles.wrapper, { borderRadius: rounded }, containerStyle]}>
-      <Feather name="search" size={iconSize} color={iconColor} style={styles.leftIcon} />
+    <View style={styles.container}>
+      {/* Icon tìm kiếm */}
+      <Ionicons name="search" size={20} color="#777" style={styles.iconLeft} />
+
+      {/* Ô nhập */}
       <TextInput
-        value={value}
-        onChangeText={onChangeText}
+        style={styles.input}
         placeholder={placeholder}
-        placeholderTextColor="#9ca3af"
-        style={[styles.input, inputStyle]}
-        returnKeyType="search"
-        underlineColorAndroid="transparent"
-        {...props}
+        placeholderTextColor="#aaa"
+        value={query}
+        onChangeText={setQuery}
       />
-      {showClear && value ? (
-        <TouchableOpacity
-          onPress={() => {
-            onChangeText?.('');
-            onClear?.();
-          }}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          style={styles.clearBtn}
-        >
-          <Feather name="x" size={iconSize} color={iconColor} />
-        </TouchableOpacity>
-      ) : null}
+
+      {/* Nút X để xóa */}
+      {query.length > 0 && (
+        <Animated.View style={[styles.clearWrapper, { opacity: inputAnim }]}>
+          <TouchableOpacity onPress={() => setQuery('')}>
+            <Ionicons name="close-circle" size={20} color="#888" />
+          </TouchableOpacity>
+        </Animated.View>
+      )}
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  wrapper: {
+  container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    backgroundColor: '#fff',
+    borderRadius: 12,
     paddingHorizontal: 10,
-    paddingVertical: Platform.OS === 'ios' ? 8 : 6,
-    // subtle shadow
-    shadowColor: '#000',
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
     elevation: 2,
+    marginHorizontal: 10,
+    marginVertical: 8,
+    height: 44,
   },
-  leftIcon: {
-    marginRight: 8,
+  iconLeft: {
+    marginRight: 6,
   },
   input: {
     flex: 1,
-    fontSize: 16,
-    padding: 0, // padding handled by wrapper
-    color: '#111827',
+    fontSize: 15,
+    color: '#333',
+    paddingVertical: 6,
   },
-  clearBtn: {
-    marginLeft: 8,
-    padding: 4,
+  clearWrapper: {
+    marginLeft: 4,
   },
 });
-
-export default SearchInput;
