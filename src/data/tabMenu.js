@@ -11,6 +11,7 @@ import DealsStack from '../navigation/stacks/DealsStack';
 import OrderStack from '../navigation/stacks/OrderStack';
 import MedicineStack from '../navigation/stacks/MedicineStack';
 import QuickOrderStack from '../navigation/stacks/QuickOrderStack';
+import AlertStack from '../navigation/stacks/AlertStack';
 
 const tabMenu = [
   {
@@ -26,10 +27,11 @@ const tabMenu = [
     component: OrderStack,
   },
   {
-    name: 'QuickOrderTab',
+    name: 'MedicineTab',
     label: 'Đặt nhanh',
-    icon: { active: 'flash-outline', inactive: 'flash-outline' },
-    component: QuickOrderStack,
+    icon: { active: 'flash', inactive: 'flash-outline' },
+    component: MedicineStack,
+    hidden: false,
   },
   {
     name: 'DealsTab',
@@ -73,11 +75,18 @@ const tabMenu = [
     hidden: true,
   },
   {
-    name: 'MedicineTab',
-    label: 'Tân dược',
-    icon: { active: 'cart', inactive: 'cart-outline' },
-    component: MedicineStack,
-    hidden: false,
+    name: 'QuickOrderTab',
+    label: 'Đặt nhanh',
+    icon: { active: 'flash-outline', inactive: 'flash-outline' },
+    component: QuickOrderStack,
+    hidden: true,
+  },
+  {
+    name: 'AlertTab',
+    label: 'Thông báo',
+    icon: { active: 'notifications', inactive: 'notifications-outline' },
+    component: AlertStack,
+    hidden: true,
   },
 ];
 

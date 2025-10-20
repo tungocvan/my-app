@@ -8,7 +8,11 @@ const HomeStack = () => {
     <CustomStackNavigator
       defaultHeaderOptions={{ showMenu: true, showLogout: true, isSearch: true }}
     >
-      <CustomStackNavigator.Screen name="HomeScreen" component={HomeScreen} />
+      <CustomStackNavigator.Screen
+        name="HomeScreen"
+        component={HomeScreen}
+        options={{ showAlert: true, showAccount: true }}
+      />
       <CustomStackNavigator.Screen
         name="DetailScreen"
         title="Chi tiết sản phẩm"

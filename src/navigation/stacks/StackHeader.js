@@ -4,7 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // import LogoutButton from '../../components/LogoutButton';
 import CartIcon from '../../components/CartIcon';
+import AccountIcon from '../../components/AccountIcon';
 import BackButton from '../../components/BackButton';
+import AlertIcon from '../../components/AlertIcon';
 import { useSidebar } from '../../context/SidebarContext';
 import { HEADER } from '../../constants';
 import HeaderSearchButton from '../../components/HeaderSearchButton'; // 👉 import component bạn vừa tạo
@@ -17,6 +19,8 @@ const StackHeader = ({
   isSearch = false,
   isCart = false,
   showBack = false,
+  showAlert = false,
+  showAccount = false,
   navigation,
 }) => {
   const { setSidebarOpen } = useSidebar();
@@ -43,14 +47,16 @@ const StackHeader = ({
         {isSearch ? (
           <View style={{ flex: 1, marginHorizontal: 8 }}>
             <HeaderSearchButton
-              placeholder="Tìm kiếm..."
-              onPress={() => navigation.navigate('SearchTab')}
+              placeholder="Tìm sản phẩm..."
+              onPress={() => navigation.navigate('MedicineTab')}
             />
           </View>
         ) : (
           title && <Text style={styles.title}>{title}</Text>
         )}
+        {showAlert && <AlertIcon hanldePress={() => navigation.navigate('AlertTab')} />}
         {isCart && <CartIcon hanldePress={() => navigation.navigate('CartTab')} />}
+        {showAccount && <AccountIcon hanldePress={() => navigation.navigate('ProfileTab')} />}
         {/* Logout Right */}
         {/* {showLogout ? <LogoutButton isText={isText} /> : <View style={{ width: 40 }} />} */}
       </View>

@@ -30,6 +30,8 @@ const CustomStackNavigator = ({ children, defaultHeaderOptions = {} }) => {
         const isSearch = options.isSearch ?? defaultHeaderOptions.isSearch ?? false;
         const isCart = options.isCart ?? defaultHeaderOptions.isCart ?? true;
         const showBack = options.showBack ?? defaultHeaderOptions.showBack ?? false;
+        const showAlert = options.showAlert ?? defaultHeaderOptions.showAlert ?? false;
+        const showAccount = options.showAccount ?? defaultHeaderOptions.showAccount ?? false;
 
         return (
           <Stack.Screen
@@ -48,6 +50,8 @@ const CustomStackNavigator = ({ children, defaultHeaderOptions = {} }) => {
                         isSearch={isSearch}
                         isCart={isCart}
                         showBack={showBack}
+                        showAccount={showAccount}
+                        showAlert={showAlert}
                         {...headerProps}
                       />
                     ),

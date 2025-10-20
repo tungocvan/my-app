@@ -3,14 +3,26 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Fonts } from '../data/fonts';
-import ProductList from '../components/ProductList';
+import ImageSlider from '../components/ImageSlider';
 
 const HomeScreen = () => {
-  const navigation = useNavigation();
+  const images = [
+    'https://picsum.photos/id/1018/1200/600',
+    'https://picsum.photos/id/1023/1200/600',
+    'https://picsum.photos/id/1037/1200/600',
+  ];
 
   return (
     <View style={styles.container}>
-      <ProductList navigation={navigation} />
+      <View>
+        <ImageSlider
+          images={images}
+          autoplay={true}
+          autoplayInterval={2500}
+          imageHeight={220}
+          showDots={true}
+        />
+      </View>
     </View>
   );
 };
@@ -21,7 +33,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
-    padding: 16,
+    padding: 4,
   },
   header: {
     fontSize: 22,
