@@ -4,6 +4,8 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Fonts } from '../data/fonts';
 import ImageSlider from '../components/ImageSlider';
+import CategoryGroups from '../components/CategoryGroups';
+import { MEDICINE_GROUPS } from '../data/url';
 
 const HomeScreen = () => {
   const images = [
@@ -23,6 +25,16 @@ const HomeScreen = () => {
           showDots={true}
         />
       </View>
+      <CategoryGroups
+        apiUrl={MEDICINE_GROUPS} // POST: https://adminlt.tungocvan.com/api/categories/nhom-thuoc
+        itemSize={86}
+        onPressGroup={(group) => {
+          navigation.navigate('MedicineList', {
+            categorySlug: group.slug,
+            categoryId: group.id,
+          });
+        }}
+      />
     </View>
   );
 };

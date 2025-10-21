@@ -12,6 +12,7 @@ import OrderStack from '../navigation/stacks/OrderStack';
 import MedicineStack from '../navigation/stacks/MedicineStack';
 import QuickOrderStack from '../navigation/stacks/QuickOrderStack';
 import AlertStack from '../navigation/stacks/AlertStack';
+import ProductStack from '../navigation/stacks/ProductStack';
 
 const tabMenu = [
   {
@@ -86,6 +87,13 @@ const tabMenu = [
     label: 'Thông báo',
     icon: { active: 'notifications', inactive: 'notifications-outline' },
     component: AlertStack,
+    hidden: true,
+  },
+  {
+    name: 'ProductTab',
+    label: 'Sản phẩm',
+    icon: { active: 'notifications', inactive: 'notifications-outline' },
+    component: ProductStack,
     hidden: true,
   },
 ];
