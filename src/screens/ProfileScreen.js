@@ -31,8 +31,10 @@ const ProfileScreen = () => {
 
   const fetchUserInfo = async (userId) => {
     setLoading(true);
+    console.log('userId:', userId);
     try {
       const res = await axiosClient.get(`${USER_OPTIONS}/${userId}`);
+
       if (res.data?.success) {
         setUserInfo(res.data.data);
       } else {

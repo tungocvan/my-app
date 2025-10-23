@@ -103,6 +103,7 @@ const EditProfileScreen = () => {
     };
 
     try {
+      console.log('payload:', payload);
       const { data } = await axiosClient.post(`${USER_OPTIONS}/update`, payload);
       if (data.success) {
         Alert.alert('✅ Thành công', 'Thông tin đã được lưu!');

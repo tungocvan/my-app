@@ -9,11 +9,13 @@ import {
   TextInput,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import axios from 'axios';
+import axiosClient from '../api/axiosClient';
 import { Ionicons } from '@expo/vector-icons';
+import { useSelector } from 'react-redux';
 import { ORDERS } from '../data/url';
 
 const OrderScreen = () => {
+  const user = useSelector((state) => state.user.user);
   const navigation = useNavigation();
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
@@ -29,9 +31,12 @@ const OrderScreen = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await axios.post(ORDERS);
+      const filterUser =
+        user && user.is_admin !== 1 ? { is_admin: user.is_admin, email: user.email } : {};
+
+      const response = await axiosClient.post(ORDERS, filterUser);
       const data = response.data.data || [];
-      // console.log(data[0]);
+      console.log(data[0]);
       setOrders(data);
       setFilteredOrders(data);
     } catch (err) {
