@@ -15,16 +15,16 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { useSelector } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
-
-import axiosClient from '../api/axiosClient';
-import { USER_OPTIONS, BASE_URL } from '../data/url';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axiosClient from '../api/axiosClient';
+import { USER_OPTIONS } from '../data/url';
 
 const DEFAULT_AVATAR = 'https://adminlt.tungocvan.com/images/user.jpg';
 
 const EditProfileScreen = () => {
-  const [userId, setUserId] = useState(null);
   const user = useSelector((state) => state.user.user);
+
+  const [userId, setUserId] = useState(user.id);
 
   // Thông tin cá nhân
   const [name, setName] = useState('');
@@ -34,13 +34,13 @@ const EditProfileScreen = () => {
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
 
-  // Tab
+  // Tabs
   const [activeTab, setActiveTab] = useState('personal');
   const [loading, setLoading] = useState(false);
   const [loadingExtra, setLoadingExtra] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // Dữ liệu bổ sung
+  // Extra info
   const [extraInfo, setExtraInfo] = useState({
     address: '',
     phone: '',
@@ -51,14 +51,21 @@ const EditProfileScreen = () => {
     picture: DEFAULT_AVATAR,
   });
 
-  useEffect(() => {
-    (async () => {
-      const id = await AsyncStorage.getItem('user_id');
-      setUserId(id || 1);
-    })();
-  }, []);
+  /** Load user_id **/
+  // useEffect(() => {
+  //   (async () => {
+  //     try {
+  //       const id = await AsyncStorage.getItem('user_id');
+  //       setUserId(Number(id) || 1);
+  //     } catch (error) {
+  //       console.log('Error get user_id:', error);
+  //     }
+  //   })();
+  // }, []);
 
+  /** Fetch user info **/
   useEffect(() => {
+    //console.log('edit id:', userId);
     if (userId) fetchUserInfo();
   }, [userId]);
 
@@ -68,11 +75,17 @@ const EditProfileScreen = () => {
       const { data } = await axiosClient.get(`${USER_OPTIONS}/${userId}`);
       if (data.success && data.data) {
         const info = data.data;
-        setName(user.name || '');
-        setEmail(user.email || '');
+        //console.log('info:', info);
+
+        // Set thông tin cơ bản
+        setName(user?.name || '');
+        setEmail(info.email || '');
         setPhone(info.phone || '');
         setAddress(info.address || '');
-        setExtraInfo({
+
+        // Set thông tin bổ sung
+        setExtraInfo((prev) => ({
+          ...prev,
           address: info.address || '',
           phone: info.phone || '',
           email: info.email || '',
@@ -80,7 +93,7 @@ const EditProfileScreen = () => {
           website: info.website || '',
           tax_code: info.tax_code || '',
           picture: info.picture || DEFAULT_AVATAR,
-        });
+        }));
       }
     } catch (error) {
       console.log('Lỗi khi load user-info:', error.response?.data || error.message);
@@ -89,8 +102,10 @@ const EditProfileScreen = () => {
     }
   };
 
+  /** Lưu thông tin **/
   const handleSave = async () => {
     setLoading(true);
+
     const payload = {
       user_id: userId,
       user_info: {
@@ -103,7 +118,7 @@ const EditProfileScreen = () => {
     };
 
     try {
-      console.log('payload:', payload);
+      //console.log('payload gửi lên:', payload);
       const { data } = await axiosClient.post(`${USER_OPTIONS}/update`, payload);
       if (data.success) {
         Alert.alert('✅ Thành công', 'Thông tin đã được lưu!');
@@ -118,7 +133,7 @@ const EditProfileScreen = () => {
     }
   };
 
-  /** 🖼️ Đổi ảnh đại diện **/
+  /** Đổi ảnh đại diện **/
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -174,9 +189,13 @@ const EditProfileScreen = () => {
 
       <Text style={styles.label}>Email</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { backgroundColor: '#E5E7EB', color: '#6B7280' }]}
         value={email}
-        onChangeText={setEmail}
+        onChangeText={(val) => {
+          setEmail(val);
+          setExtraInfo((prev) => ({ ...prev, email: val }));
+        }}
+        editable={false}
         keyboardType="email-address"
       />
 
@@ -184,12 +203,22 @@ const EditProfileScreen = () => {
       <TextInput
         style={styles.input}
         value={phone}
-        onChangeText={setPhone}
+        onChangeText={(val) => {
+          setPhone(val);
+          setExtraInfo((prev) => ({ ...prev, phone: val }));
+        }}
         keyboardType="phone-pad"
       />
 
       <Text style={styles.label}>Địa chỉ</Text>
-      <TextInput style={styles.input} value={address} onChangeText={setAddress} />
+      <TextInput
+        style={styles.input}
+        value={address}
+        onChangeText={(val) => {
+          setAddress(val);
+          setExtraInfo((prev) => ({ ...prev, address: val }));
+        }}
+      />
     </View>
   );
 
@@ -208,7 +237,7 @@ const EditProfileScreen = () => {
     </View>
   );
 
-  /** TAB 3: Thông tin bổ sung (đã chỉnh sửa) **/
+  /** TAB 3: Thông tin bổ sung **/
   const renderExtraInfo = () => {
     if (loadingExtra) {
       return (
@@ -221,21 +250,18 @@ const EditProfileScreen = () => {
 
     return (
       <View style={styles.form}>
-        {/* Ẩn trường ảnh đại diện URL */}
-
         <Text style={styles.label}>Công ty</Text>
         <TextInput
           style={styles.input}
           value={extraInfo.company}
-          onChangeText={(val) => setExtraInfo({ ...extraInfo, company: val })}
+          onChangeText={(val) => setExtraInfo((prev) => ({ ...prev, company: val }))}
         />
 
-        {/* ➕ Mã số thuế */}
         <Text style={styles.label}>Mã số thuế</Text>
         <TextInput
           style={styles.input}
-          value={extraInfo.tax_code || ''}
-          onChangeText={(val) => setExtraInfo({ ...extraInfo, tax_code: val })}
+          value={extraInfo.tax_code}
+          onChangeText={(val) => setExtraInfo((prev) => ({ ...prev, tax_code: val }))}
           placeholder="Nhập mã số thuế (nếu có)"
         />
 
@@ -243,7 +269,8 @@ const EditProfileScreen = () => {
         <TextInput
           style={styles.input}
           value={extraInfo.website}
-          onChangeText={(val) => setExtraInfo({ ...extraInfo, website: val })}
+          onChangeText={(val) => setExtraInfo((prev) => ({ ...prev, website: val }))}
+          placeholder="https://..."
         />
       </View>
     );
@@ -334,6 +361,7 @@ const EditProfileScreen = () => {
 
 export default EditProfileScreen;
 
+/* ========== STYLES ========== */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB', paddingTop: 20 },
   avatarContainer: {
@@ -404,13 +432,4 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   saveText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  cancelButton: {
-    backgroundColor: '#E5E7EB',
-    paddingVertical: 14,
-    borderRadius: 10,
-    marginHorizontal: 20,
-    marginTop: 10,
-    alignItems: 'center',
-  },
-  cancelText: { color: '#374151', fontSize: 16, fontWeight: '600' },
 });

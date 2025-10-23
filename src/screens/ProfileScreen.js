@@ -23,6 +23,7 @@ const ProfileScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
+      //console.log('user_Id:', user.id);
       if (user?.id) {
         fetchUserInfo(user.id);
       }
@@ -31,10 +32,9 @@ const ProfileScreen = () => {
 
   const fetchUserInfo = async (userId) => {
     setLoading(true);
-    console.log('userId:', userId);
     try {
       const res = await axiosClient.get(`${USER_OPTIONS}/${userId}`);
-
+      //console.log('user:', res.data.data);
       if (res.data?.success) {
         setUserInfo(res.data.data);
       } else {
@@ -49,7 +49,7 @@ const ProfileScreen = () => {
   };
 
   const handleViewProfile = () => {
-    navigation.navigate('EditProfileScreen', { user });
+    navigation.navigate('EditProfileScreen');
   };
 
   if (!user) {
