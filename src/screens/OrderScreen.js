@@ -31,7 +31,7 @@ const OrderScreen = () => {
       setLoading(true);
       const response = await axios.post(ORDERS);
       const data = response.data.data || [];
-      //console.log(data[0]);
+      // console.log(data[0]);
       setOrders(data);
       setFilteredOrders(data);
     } catch (err) {

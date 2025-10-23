@@ -9,14 +9,15 @@ const CartScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const { items, totalPrice } = useSelector((state) => state.cart);
-
+  // console.log('items:', items);
   const renderItem = ({ item }) => (
     <View style={styles.itemContainer}>
       <Image source={{ uri: BASE_URL_IMG + '/' + item.image }} style={styles.image} />
 
       <View style={{ flex: 1, marginLeft: 10 }}>
-        <Text style={styles.title}>{item.title}</Text>
+        <Text style={styles.title}>{item.title || item.name}</Text>
         <Text style={styles.price}>{Number(item.price).toLocaleString('vi-VN')}đ</Text>
+        <Text>{item.dvt || item.don_vi_tinh}</Text>
         <View style={styles.rowQty}>
           <Pressable
             style={styles.qtyButton}

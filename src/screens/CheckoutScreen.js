@@ -70,9 +70,9 @@ const CheckoutScreen = () => {
           cartItems.map((item) => (
             <View key={item.id} style={styles.cartItem}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.itemName}>{item.title}</Text>
+                <Text style={styles.itemName}>{item.title || item.name || item.ten_biet_duoc}</Text>
                 <Text style={styles.itemQuantity}>Số lượng: {item.quantity}</Text>
-                <Text>{item.dvt}</Text>
+                <Text>{item.dvt || item.don_vi_tinh}</Text>
               </View>
               <Text style={styles.itemPrice}>{(item.price * item.quantity).toLocaleString()}đ</Text>
             </View>
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backButton: {
-    backgroundColor: '#e5e7eb',
+    backgroundColor: 'red',
     marginRight: 8,
   },
   confirmButton: {

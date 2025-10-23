@@ -55,7 +55,10 @@ export default function CategoryGroups({ apiUrl }) {
       key={item.id ?? item.slug}
       style={styles.item}
       onPress={() =>
-        navigation.navigate('ProductTab', { screen: 'ProductScreen', params: { slug: item.slug } })
+        navigation.navigate('ProductTab', {
+          screen: 'ProductScreen',
+          params: { slug: item.slug, name: item.name },
+        })
       }
       activeOpacity={0.85}
     >
