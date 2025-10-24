@@ -2,7 +2,8 @@
 import axiosClient from './axiosClient';
 export const createOrder = async (order) => {
   try {
-    const response = await axiosClient.post('/order', order);
+    console.log('order:', order);
+    const response = await axiosClient.post('/orders/update', order);
     return response.data;
   } catch (error) {
     console.error('❌ Lỗi khi tạo đơn hàng:', error.response?.data || error.message);

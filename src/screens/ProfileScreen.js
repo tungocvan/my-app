@@ -41,8 +41,18 @@ const ProfileScreen = () => {
         Alert.alert('⚠️ Lỗi', res.data?.message || 'Không lấy được thông tin người dùng');
       }
     } catch (error) {
-      console.log('Fetch user info error:', error.response?.data || error.message);
-      Alert.alert('❌ Lỗi', 'Không thể tải thông tin hồ sơ');
+      // 3️⃣ Cập nhật bảng user_info
+      let extra_user = {
+        address: 'Vui lòng cập nhật địa chỉ',
+        phone: 'Vui lòng cập nhật số điện thoại',
+        email: user.email || '—',
+      };
+      const { data } = await axiosClient.post(`${USER_OPTIONS}/update`, {
+        user_id: userId,
+        user_info: { ...extra_user },
+      });
+
+      if (!data.success) Alert.alert('❌ Lỗi', 'Không thể tải thông tin hồ sơ');
     } finally {
       setLoading(false);
     }

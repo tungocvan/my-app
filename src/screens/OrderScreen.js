@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   TextInput,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axiosClient from '../api/axiosClient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
@@ -32,11 +32,11 @@ const OrderScreen = () => {
     try {
       setLoading(true);
       const filterUser =
-        user && user.is_admin !== 1 ? { is_admin: user.is_admin, email: user.email } : {};
-
+        user && user.is_admin == 0 ? { is_admin: user.is_admin, email: user.email } : {};
+      console.log('filterUser:', filterUser);
       const response = await axiosClient.post(ORDERS, filterUser);
       const data = response.data.data || [];
-      console.log(data[0]);
+      //console.log(data[0]);
       setOrders(data);
       setFilteredOrders(data);
     } catch (err) {
@@ -47,9 +47,11 @@ const OrderScreen = () => {
     }
   };
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchOrders();
+    }, []),
+  );
 
   // 🔹 Chuyển dd/mm/yyyy -> Date object
   const parseDate = (dateStr) => {

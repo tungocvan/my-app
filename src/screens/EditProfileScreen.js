@@ -12,23 +12,25 @@ import {
   Platform,
   Image,
 } from 'react-native';
+
+import { updateUser } from '../redux/slices/userSlice';
 import * as ImagePicker from 'expo-image-picker';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosClient from '../api/axiosClient';
 import { USER_OPTIONS } from '../data/url';
 
 const DEFAULT_AVATAR = 'https://adminlt.tungocvan.com/images/user.jpg';
 
 const EditProfileScreen = () => {
+  const dispatch = useDispatch(); // ✅ dùng ở đây
   const user = useSelector((state) => state.user.user);
 
   const [userId, setUserId] = useState(user.id);
 
   // Thông tin cá nhân
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [name, setName] = useState(user?.name);
+  const [email, setEmail] = useState(user?.email);
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [password, setPassword] = useState('');
@@ -44,24 +46,12 @@ const EditProfileScreen = () => {
   const [extraInfo, setExtraInfo] = useState({
     address: '',
     phone: '',
-    email: '',
+    email: email,
     company: '',
     website: '',
     tax_code: '',
     picture: DEFAULT_AVATAR,
   });
-
-  /** Load user_id **/
-  // useEffect(() => {
-  //   (async () => {
-  //     try {
-  //       const id = await AsyncStorage.getItem('user_id');
-  //       setUserId(Number(id) || 1);
-  //     } catch (error) {
-  //       console.log('Error get user_id:', error);
-  //     }
-  //   })();
-  // }, []);
 
   /** Fetch user info **/
   useEffect(() => {
@@ -104,30 +94,38 @@ const EditProfileScreen = () => {
 
   /** Lưu thông tin **/
   const handleSave = async () => {
-    setLoading(true);
-
-    const payload = {
-      user_id: userId,
-      user_info: {
-        name,
-        email,
-        phone,
-        address,
-        ...extraInfo,
-      },
-    };
-
     try {
-      //console.log('payload gửi lên:', payload);
-      const { data } = await axiosClient.post(`${USER_OPTIONS}/update`, payload);
-      if (data.success) {
-        Alert.alert('✅ Thành công', 'Thông tin đã được lưu!');
-      } else {
-        Alert.alert('⚠️ Thất bại', data.message || 'Cập nhật không thành công.');
+      setLoading(true);
+
+      // 1️⃣ Chuẩn bị dữ liệu update
+      const userPayload = { name, email, password };
+
+      // 🔹 Nếu password rỗng => loại bỏ khỏi payload
+      if (!password || password.trim() === '') {
+        delete userPayload.password;
       }
+      //      console.log('userPayload:', userPayload);
+
+      // 2️⃣ Cập nhật user (Redux Thunk)
+      // const resultAction = await dispatch(updateUser({ id: userId, payload: userPayload }));
+      const resultAction = await dispatch(updateUser({ id: userId, name, email }));
+
+      if (updateUser.rejected.match(resultAction)) {
+        throw new Error(resultAction.payload || 'Không thể cập nhật user.');
+      }
+
+      // 3️⃣ Cập nhật bảng user_info
+      const { data } = await axiosClient.post(`${USER_OPTIONS}/update`, {
+        user_id: userId,
+        user_info: { name, email, phone, address, ...extraInfo },
+      });
+
+      if (!data.success) throw new Error(data.message || 'Cập nhật thông tin thất bại.');
+
+      Alert.alert('✅ Thành công', 'Thông tin đã được lưu!');
     } catch (error) {
       console.log('Update error:', error.response?.data || error.message);
-      Alert.alert('❌ Lỗi', 'Không thể lưu thông tin.');
+      Alert.alert('❌ Lỗi', error.message || 'Không thể lưu thông tin.');
     } finally {
       setLoading(false);
     }

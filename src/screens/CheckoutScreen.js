@@ -1,49 +1,61 @@
 ﻿import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  Modal,
+  TextInput,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { clearCart } from '../redux/slices/cartSlice';
 import { createOrder } from '../api/orderApi';
+import CustomerInfoBox from '../components/CustomerInfoBox';
 
 const CheckoutScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
   const { totalPrice } = useSelector((state) => state.cart);
-  const { user, token } = useSelector((state) => state.user);
+  const { user } = useSelector((state) => state.user);
   const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderNote, setOrderNote] = useState('');
+  const [noteModalVisible, setNoteModalVisible] = useState(false); // 🆕 modal ghi chú
 
   const handleConfirmOrder = async () => {
-    // tôi muốn thực hiện ở đây disaable xác nhận thanh toán
     if (cartItems.length === 0) {
       Alert.alert('Thông báo', 'Giỏ hàng của bạn đang trống.');
       return;
     }
 
     setIsSubmitting(true);
-    // ✅ Tạo object đơn hàng
+
     const order = {
+      user_id: user.id,
       email: user?.email || 'guest@example.com',
       orderDetail: cartItems.map((item) => ({
         product_id: item.id,
         title:
-          item.ten_biet_duoc || item.title || item.name || item.product?.name || 'Không rõ tên', // ✅ thêm fallback
+          item.ten_biet_duoc || item.title || item.name || item.product?.name || 'Không rõ tên',
         price: item.price,
         dvt: item.don_vi_tinh,
         quantity: item.quantity,
         total: item.price * item.quantity,
       })),
       total: totalPrice,
+      status: 'pending',
+      order_note: orderNote || '', // 🆕 thêm ghi chú
     };
 
-    // ✅ In ra console trước khi gọi API
-    console.log('🧾 Order chuẩn bị gửi:', JSON.stringify(order, null, 2));
+    //console.log('🧾 Order chuẩn bị gửi:', JSON.stringify(order, null, 2));
 
     try {
-      const response = await createOrder(order);
-      //console.log('✅ Đơn hàng đã được lưu:', response);
-
+      await createOrder(order);
       Alert.alert('Thanh toán thành công 🎉', 'Đơn hàng của bạn đã được xác nhận!', [
         {
           text: 'OK',
@@ -57,13 +69,17 @@ const CheckoutScreen = () => {
       console.error('❌ Lỗi khi tạo đơn hàng:', error.response?.data || error.message);
       Alert.alert('Lỗi', 'Không thể tạo đơn hàng. Vui lòng thử lại.');
     } finally {
-      setIsSubmitting(false); // ✅ bật lại nút sau khi xong
+      setIsSubmitting(false);
     }
   };
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
+        {/* 🧍 Thông tin khách hàng */}
+        <CustomerInfoBox user={user?.extra_user} />
+
+        {/* 🧾 Danh sách sản phẩm */}
         {cartItems.length === 0 ? (
           <Text style={styles.emptyText}>Giỏ hàng của bạn đang trống</Text>
         ) : (
@@ -79,12 +95,61 @@ const CheckoutScreen = () => {
           ))
         )}
 
+        {/* 🗒️ Nút mở modal ghi chú */}
+        <Pressable style={styles.noteButton} onPress={() => setNoteModalVisible(true)}>
+          <Text style={styles.noteButtonLabel}>📝 Ghi chú đơn hàng</Text>
+          <Text style={styles.noteButtonValue}>
+            {orderNote
+              ? `"${orderNote}"`
+              : 'Nhấn để thêm ghi chú...nếu có thay đổi thông tin nhận hàng hoặc hẹn giờ giao hàng,...'}
+          </Text>
+        </Pressable>
+
         {/* Tổng tiền */}
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Tổng cộng:</Text>
           <Text style={styles.totalValue}>{totalAmount.toLocaleString()}đ</Text>
         </View>
       </ScrollView>
+
+      {/* 🔹 Modal nhập ghi chú */}
+      <Modal
+        visible={noteModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setNoteModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Nhập ghi chú đơn hàng</Text>
+
+            <TextInput
+              style={styles.noteInput}
+              value={orderNote}
+              onChangeText={setOrderNote}
+              placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi giao..."
+              multiline
+              numberOfLines={5}
+              textAlignVertical="top"
+            />
+
+            <View style={styles.modalActions}>
+              <Pressable
+                style={[styles.modalButton, { backgroundColor: '#aaa' }]}
+                onPress={() => setNoteModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Hủy</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.modalButton, { backgroundColor: '#007AFF' }]}
+                onPress={() => setNoteModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Lưu ghi chú</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Thanh hành động */}
       <View style={styles.footer}>
@@ -95,7 +160,7 @@ const CheckoutScreen = () => {
         <Pressable
           style={[styles.button, styles.confirmButton, isSubmitting && { opacity: 0.6 }]}
           onPress={handleConfirmOrder}
-          disabled={isSubmitting || cartItems.length === 0} // ✅ disabled khi đang gửi hoặc giỏ rỗng
+          disabled={isSubmitting || cartItems.length === 0}
         >
           <Text style={styles.buttonText}>
             {isSubmitting ? 'Đang xử lý...' : 'Xác nhận thanh toán'}
@@ -109,25 +174,9 @@ const CheckoutScreen = () => {
 export default CheckoutScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fafafa',
-  },
-  content: {
-    padding: 16,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 12,
-    textAlign: 'center',
-    color: '#111',
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: '#666',
-    marginTop: 40,
-  },
+  container: { flex: 1, backgroundColor: '#fafafa' },
+  content: { padding: 16 },
+  emptyText: { textAlign: 'center', color: '#666', marginTop: 40 },
   cartItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -135,20 +184,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
-  itemName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+  itemName: { fontSize: 16, fontWeight: '600', color: '#333' },
+  itemQuantity: { fontSize: 13, color: '#777' },
+  itemPrice: { fontSize: 15, fontWeight: '600', color: '#e11d48' },
+
+  // 🗒️ Ghi chú
+  noteButton: {
+    marginTop: 16,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
-  itemQuantity: {
-    fontSize: 13,
-    color: '#777',
-  },
-  itemPrice: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#e11d48',
-  },
+  noteButtonLabel: { fontWeight: '600', color: '#007AFF', marginBottom: 4 },
+  noteButtonValue: { color: '#333', fontStyle: 'italic' },
+
   totalRow: {
     marginTop: 16,
     flexDirection: 'row',
@@ -157,16 +208,9 @@ const styles = StyleSheet.create({
     borderTopColor: '#ddd',
     paddingTop: 10,
   },
-  totalLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#222',
-  },
-  totalValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#16a34a',
-  },
+  totalLabel: { fontSize: 16, fontWeight: '600', color: '#222' },
+  totalValue: { fontSize: 18, fontWeight: '700', color: '#16a34a' },
+
   footer: {
     flexDirection: 'row',
     borderTopWidth: 1,
@@ -181,15 +225,38 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
-  backButton: {
-    backgroundColor: 'red',
-    marginRight: 8,
+  backButton: { backgroundColor: 'red', marginRight: 8 },
+  confirmButton: { backgroundColor: '#2563eb' },
+  buttonText: { color: '#fff', fontWeight: '600' },
+
+  // 🔹 Modal
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
-  confirmButton: {
-    backgroundColor: '#2563eb',
+  modalContainer: {
+    backgroundColor: '#fff',
+    width: '90%',
+    borderRadius: 12,
+    padding: 16,
   },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '600',
+  modalTitle: { fontSize: 16, fontWeight: '700', color: '#007AFF', marginBottom: 10 },
+  noteInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 10,
+    minHeight: 100,
+    color: '#333',
+    marginBottom: 12,
   },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
+  modalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  modalButtonText: { color: '#fff', fontWeight: '600' },
 });

@@ -11,11 +11,11 @@ const AlertIcon = ({ hanldePress, isColor }) => {
   return (
     <Pressable style={styles.container} onPress={hanldePress}>
       <Ionicons name="notifications" size={LOGOUT.ICON_SIZE} color={isColor || LOGOUT.ICON_COLOR} />
-      {totalQuantity > 0 && (
+      {/* {totalQuantity > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{totalQuantity}</Text>
         </View>
-      )}
+      )} */}
     </Pressable>
   );
 };

@@ -1,7 +1,21 @@
-﻿import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+﻿import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  Modal,
+  TextInput,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import axiosClient from '../api/axiosClient';
+import CustomerInfoBox from '../components/CustomerInfoBox';
+import { USER_OPTIONS, ORDERS } from '../data/url';
 
 const BackButton = ({ color = '#007AFF', size = 24 }) => {
   const navigation = useNavigation();
@@ -16,15 +30,35 @@ const BackButton = ({ color = '#007AFF', size = 24 }) => {
 };
 
 const OrderDetailScreen = ({ route, navigation }) => {
+  const { user } = useSelector((state) => state.user);
+  const isAdmin = user?.is_admin === 1;
   const { order } = route.params;
+  const [orderData, setOrderData] = useState(order);
+  const [details, setDetails] = useState(orderData.order_detail);
+  const [userInfo, setUserInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [adminNote, setAdminNote] = useState('');
+  const [loadingUpdate, setLoadingUpdate] = useState(false);
 
-  // Trạng thái cho phép sửa
-  const isEditable = order.status === 'pending';
+  const isEditable = orderData.status === 'pending';
 
-  // State quản lý chi tiết sản phẩm
-  const [details, setDetails] = useState(order.order_detail);
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const res = await axiosClient.post(USER_OPTIONS, { email: orderData.email });
+        if (res.data.success) {
+          setUserInfo(res.data.data);
+        }
+      } catch (error) {
+        console.error('❌ Lỗi lấy thông tin user:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUserInfo();
+  }, [orderData.email]);
 
-  // Cập nhật số lượng
   const updateQuantity = (index, newQty) => {
     if (newQty < 1) return;
     const newDetails = [...details];
@@ -34,7 +68,6 @@ const OrderDetailScreen = ({ route, navigation }) => {
     setDetails(newDetails);
   };
 
-  // Xóa sản phẩm
   const removeItem = (index) => {
     Alert.alert('Xóa sản phẩm', 'Bạn có chắc chắn muốn xóa sản phẩm này?', [
       { text: 'Hủy', style: 'cancel' },
@@ -50,10 +83,8 @@ const OrderDetailScreen = ({ route, navigation }) => {
     ]);
   };
 
-  // Tính tổng tiền
   const totalAmount = details.reduce((sum, item) => sum + parseInt(item.total), 0);
 
-  // Render sản phẩm
   const renderDetailItem = ({ item, index }) => (
     <View style={styles.detailRow}>
       <Text style={styles.detailTitle}>{item.title}</Text>
@@ -76,57 +107,183 @@ const OrderDetailScreen = ({ route, navigation }) => {
     </View>
   );
 
-  // Header navigation custom
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerLeft: () => <BackButton />,
-      title: `Đơn hàng #${order.id}`,
+      title: `Đơn hàng #${orderData.id}`,
     });
   }, [navigation]);
 
-  return (
-    <FlatList
-      ListHeaderComponent={
-        <View style={styles.card}>
-          <View style={styles.orderInfo}>
-            <Text style={styles.label}>Họ và tên:</Text>
-            <Text style={styles.status}>{order.user.name}</Text>
-          </View>
-          <View style={styles.orderInfo}>
-            <Text style={styles.label}>Email:</Text>
-            <Text style={styles.status}>{order.email}</Text>
-          </View>
-          <View style={styles.orderInfo}>
-            <Text style={styles.label}>Trạng thái:</Text>
-            <Text
-              style={[
-                styles.status,
-                order.status === 'confirmed' ? styles.statusConfirmed : styles.statusPending,
-              ]}
+  // 🟣 Modal ghi chú admin
+  const renderAdminNoteModal = () => (
+    <Modal
+      visible={showModal}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShowModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalBox}>
+          <Text style={styles.modalTitle}>
+            {isAdmin ? 'Ghi chú của Admin' : 'Ghi chú đơn hàng'}
+          </Text>
+
+          <TextInput
+            style={styles.inputNote}
+            placeholder={
+              isAdmin ? 'Nhập ghi chú xác nhận đơn hàng...' : 'Nhập ghi chú cho đơn hàng của bạn...'
+            }
+            value={adminNote}
+            onChangeText={setAdminNote}
+            multiline
+          />
+
+          <View style={styles.modalActions}>
+            <TouchableOpacity
+              style={[styles.modalBtn, { backgroundColor: '#ccc' }]}
+              onPress={() => setShowModal(false)}
             >
-              {order.status === 'confirmed' ? 'Đã xác nhận' : 'Chờ xử lý'}
+              <Text>Hủy</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.modalBtn, { backgroundColor: '#34C759' }]}
+              disabled={loadingUpdate}
+              onPress={async () => {
+                setLoadingUpdate(true);
+
+                // 🔹 Xác định field ghi chú (admin_note hoặc order_note)
+                const noteField = isAdmin ? 'admin_note' : 'order_note';
+                const statusField = isAdmin ? 'confirmed' : 'pending';
+
+                const payload = {
+                  order_id: orderData.id,
+                  email: orderData.email,
+                  status: statusField,
+                  order_detail: details,
+                  total: details.reduce((sum, item) => sum + parseFloat(item.total), 0),
+                  [noteField]: adminNote, // 🔥 Ghi động field đúng loại người dùng
+                };
+
+                try {
+                  const res = await axiosClient.post(`${ORDERS}/update-item`, payload);
+                  if (res.data.success) {
+                    Alert.alert('✅ Thành công', res.data.message || 'Đơn hàng đã được xác nhận.');
+
+                    // 🔹 Cập nhật state theo loại ghi chú
+                    setOrderData((prev) => ({
+                      ...prev,
+                      status: statusField,
+                      [noteField]: adminNote,
+                    }));
+
+                    setShowModal(false);
+                  } else {
+                    Alert.alert('❌ Lỗi', res.data.message || 'Không thể cập nhật trạng thái.');
+                  }
+                } catch (error) {
+                  console.log('🔴 Lỗi khi cập nhật:', error.response?.data || error);
+                  Alert.alert('❌ Lỗi', 'Không thể cập nhật đơn hàng.');
+                } finally {
+                  setLoadingUpdate(false);
+                }
+              }}
+            >
+              <Text style={{ color: '#fff', fontWeight: '600' }}>
+                {loadingUpdate ? 'Đang xử lý...' : 'Xác nhận'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
+
+  return (
+    <>
+      {renderAdminNoteModal()}
+
+      <FlatList
+        ListHeaderComponent={
+          <View style={styles.card}>
+            {userInfo && <CustomerInfoBox user={userInfo} />}
+
+            <Text style={[styles.sectionTitle, { marginTop: 10 }]}>
+              Thông tin đơn hàng #{orderData.id}
             </Text>
-          </View>
 
-          <View style={styles.orderInfo}>
-            <Text style={styles.label}>Ngày đặt:</Text>
-            <Text style={styles.date}>{new Date(order.created_at).toLocaleString('vi-VN')}</Text>
-          </View>
+            <View style={styles.orderInfo}>
+              <Text style={styles.label}>Trạng thái:</Text>
 
-          <Text style={[styles.detailHeader, { marginTop: 12 }]}>Chi tiết sản phẩm</Text>
-        </View>
-      }
-      data={details}
-      keyExtractor={(item, index) => index.toString()}
-      renderItem={renderDetailItem}
-      contentContainerStyle={{ padding: 12 }}
-      ListFooterComponent={
-        <View style={styles.totalRow}>
-          <Text style={styles.label}>Tổng cộng:</Text>
-          <Text style={styles.total}>{totalAmount.toLocaleString('vi-VN')} ₫</Text>
-        </View>
-      }
-    />
+              {orderData.status === 'pending' ? (
+                <TouchableOpacity style={styles.statusButton} onPress={() => setShowModal(true)}>
+                  <Text style={{ color: '#fff', fontWeight: '600' }}>Chờ xử lý</Text>
+                </TouchableOpacity>
+              ) : (
+                <Text
+                  style={[
+                    styles.status,
+                    orderData.status === 'confirmed'
+                      ? styles.statusConfirmed
+                      : styles.statusPending,
+                  ]}
+                >
+                  {orderData.status === 'confirmed' ? 'Đã xác nhận' : 'Chờ xử lý'}
+                </Text>
+              )}
+            </View>
+
+            {/* 🟢 Ghi chú của khách hàng */}
+            <View style={styles.orderInfo}>
+              <Text style={styles.label}>Ghi chú khách:</Text>
+              <Text style={styles.noteText}>
+                {orderData.order_note ? orderData.order_note : '— Không có ghi chú —'}
+              </Text>
+            </View>
+
+            {/* 🔸 Ghi chú của admin */}
+            {orderData.admin_note && (
+              <View style={styles.adminNoteBox}>
+                <Ionicons
+                  name="alert-circle-outline"
+                  size={18}
+                  color="#fff"
+                  style={{ marginRight: 6 }}
+                />
+                <Text style={styles.adminNoteText}>{orderData.admin_note}</Text>
+              </View>
+            )}
+
+            <View style={styles.orderInfo}>
+              <Text style={styles.label}>Ngày đặt:</Text>
+              <Text style={styles.date}>
+                {new Date(orderData.created_at).toLocaleString('vi-VN')}
+              </Text>
+            </View>
+
+            <Text style={[styles.detailHeader, { marginTop: 12 }]}>Chi tiết sản phẩm</Text>
+          </View>
+        }
+        data={details}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={renderDetailItem}
+        contentContainerStyle={{ padding: 12 }}
+        ListFooterComponent={
+          <View style={styles.totalRow}>
+            <Text style={styles.label}>Tổng cộng:</Text>
+            <Text style={styles.total}>{totalAmount.toLocaleString('vi-VN')} ₫</Text>
+          </View>
+        }
+      />
+    </>
   );
 };
 
@@ -140,10 +297,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     elevation: 2,
   },
-  email: {
-    color: '#444',
-    fontSize: 14,
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
     marginBottom: 6,
+    color: '#007AFF',
   },
   orderInfo: {
     flexDirection: 'row',
@@ -151,7 +309,7 @@ const styles = StyleSheet.create({
     marginVertical: 2,
   },
   label: { color: '#555', fontWeight: '500' },
-  status: { fontWeight: '600' },
+  status: { fontWeight: '600', color: '#333' },
   statusPending: { color: '#ff9500' },
   statusConfirmed: { color: '#34C759' },
   date: { color: '#777' },
@@ -182,4 +340,75 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   total: { fontWeight: '700', fontSize: 16 },
+  statusButton: {
+    backgroundColor: '#ff9500',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  noteText: {
+    flex: 1,
+    textAlign: 'right',
+    color: '#555',
+    fontStyle: 'italic',
+    marginLeft: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBox: {
+    width: '85%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 10,
+    color: '#007AFF',
+  },
+  inputNote: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 10,
+    minHeight: 80,
+    textAlignVertical: 'top',
+    color: '#333',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 12,
+    gap: 10,
+  },
+  modalBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  adminNoteBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ff3b30',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  adminNoteText: {
+    flex: 1,
+    color: '#fff',
+    fontWeight: '600',
+    fontStyle: 'italic',
+    fontSize: 14,
+  },
 });
