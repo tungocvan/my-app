@@ -34,8 +34,9 @@ const EditProfileScreen = () => {
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [password, setPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   // Tabs
   const [activeTab, setActiveTab] = useState('personal');
   const [loading, setLoading] = useState(false);
@@ -103,13 +104,21 @@ const EditProfileScreen = () => {
       // 🔹 Nếu password rỗng => loại bỏ khỏi payload
       if (!password || password.trim() === '') {
         delete userPayload.password;
+      } else {
+        if (password !== confirmPassword) {
+          Alert.alert('❌ Lỗi', 'Mật khẩu mới không khớp!');
+          // reset confirmPassword / confirmPassword
+          setPassword(''); // ví dụ dùng useState
+          setConfirmPassword(''); // hoặc confirmPassword
+          return; // dừng hàm, **không gọi API**
+        }
       }
       //      console.log('userPayload:', userPayload);
 
       // 2️⃣ Cập nhật user (Redux Thunk)
       // const resultAction = await dispatch(updateUser({ id: userId, payload: userPayload }));
-      const resultAction = await dispatch(updateUser({ id: userId, name, email }));
-
+      // const resultAction = await dispatch(updateUser({ id: userId, name, email }));
+      const resultAction = await dispatch(updateUser({ id: userId, ...userPayload }));
       if (updateUser.rejected.match(resultAction)) {
         throw new Error(resultAction.payload || 'Không thể cập nhật user.');
       }
@@ -223,15 +232,42 @@ const EditProfileScreen = () => {
   /** TAB 2: Bảo mật **/
   const renderSecurity = () => (
     <View style={styles.form}>
-      <Text style={styles.label}>Mật khẩu hiện tại</Text>
-      <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry />
-      <Text style={styles.label}>Mật khẩu mới</Text>
-      <TextInput
-        style={styles.input}
-        value={newPassword}
-        onChangeText={setNewPassword}
-        secureTextEntry
-      />
+      <View style={styles.inputContainer}>
+        <Ionicons name="lock-closed-outline" size={20} color="#6B7280" style={styles.icon} />
+        <TextInput
+          style={styles.inputPass}
+          placeholder="Mật khẩu"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!showPassword}
+          placeholderTextColor="#9CA3AF"
+        />
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <Ionicons
+            name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+            size={20}
+            color="#6B7280"
+          />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.inputContainer}>
+        <Ionicons name="lock-closed-outline" size={20} color="#6B7280" style={styles.icon} />
+        <TextInput
+          style={styles.inputPass}
+          placeholder="Xác nhận mật khẩu"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry={!showConfirmPassword}
+          placeholderTextColor="#9CA3AF"
+        />
+        <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+          <Ionicons
+            name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+            size={20}
+            color="#6B7280"
+          />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -430,4 +466,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   saveText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  icon: { marginRight: 8 },
+  inputPass: { flex: 1, height: 44, color: '#111827' },
 });

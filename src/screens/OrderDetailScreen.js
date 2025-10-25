@@ -9,12 +9,16 @@ import {
   ActivityIndicator,
   Modal,
   TextInput,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import axiosClient from '../api/axiosClient';
 import CustomerInfoBox from '../components/CustomerInfoBox';
+import * as Clipboard from 'expo-clipboard';
+import OrderPDFActions from '../components/OrderPDFActions';
+
 import { USER_OPTIONS, ORDERS } from '../data/url';
 
 const BackButton = ({ color = '#007AFF', size = 24 }) => {
@@ -139,6 +143,49 @@ const OrderDetailScreen = ({ route, navigation }) => {
           />
 
           <View style={styles.modalActions}>
+            {/* 🔹 Nút Hủy đơn */}
+            <TouchableOpacity
+              style={[styles.modalBtn, { backgroundColor: '#FF3B30' }]}
+              disabled={loadingUpdate}
+              onPress={async () => {
+                setLoadingUpdate(true);
+
+                const noteField = isAdmin ? 'admin_note' : 'order_note';
+                const payload = {
+                  order_id: orderData.id,
+                  email: orderData.email,
+                  status: 'cancelled', // 🔹 trạng thái hủy
+                  order_detail: details,
+                  total: details.reduce((sum, item) => sum + parseFloat(item.total), 0),
+                  [noteField]: adminNote, // giữ ghi chú hiện tại
+                };
+
+                try {
+                  const res = await axiosClient.post(`${ORDERS}/update-item`, payload);
+                  if (res.data.success) {
+                    Alert.alert('✅ Thành công', 'Đơn hàng đã được hủy.');
+
+                    setOrderData((prev) => ({
+                      ...prev,
+                      status: 'cancelled',
+                      [noteField]: adminNote,
+                    }));
+
+                    setShowModal(false);
+                  } else {
+                    Alert.alert('❌ Lỗi', res.data.message || 'Không thể cập nhật trạng thái.');
+                  }
+                } catch (error) {
+                  console.log('🔴 Lỗi khi hủy đơn:', error.response?.data || error);
+                  Alert.alert('❌ Lỗi', 'Không thể hủy đơn.');
+                } finally {
+                  setLoadingUpdate(false);
+                }
+              }}
+            >
+              <Text style={{ color: '#fff', fontWeight: '600' }}>Hủy đơn</Text>
+            </TouchableOpacity>
+            {/* Nút đóng modal */}
             <TouchableOpacity
               style={[styles.modalBtn, { backgroundColor: '#ccc' }]}
               onPress={() => setShowModal(false)}
@@ -146,13 +193,13 @@ const OrderDetailScreen = ({ route, navigation }) => {
               <Text>Hủy</Text>
             </TouchableOpacity>
 
+            {/* Nút xác nhận ghi chú */}
             <TouchableOpacity
               style={[styles.modalBtn, { backgroundColor: '#34C759' }]}
               disabled={loadingUpdate}
               onPress={async () => {
                 setLoadingUpdate(true);
 
-                // 🔹 Xác định field ghi chú (admin_note hoặc order_note)
                 const noteField = isAdmin ? 'admin_note' : 'order_note';
                 const statusField = isAdmin ? 'confirmed' : 'pending';
 
@@ -162,7 +209,7 @@ const OrderDetailScreen = ({ route, navigation }) => {
                   status: statusField,
                   order_detail: details,
                   total: details.reduce((sum, item) => sum + parseFloat(item.total), 0),
-                  [noteField]: adminNote, // 🔥 Ghi động field đúng loại người dùng
+                  [noteField]: adminNote,
                 };
 
                 try {
@@ -170,7 +217,6 @@ const OrderDetailScreen = ({ route, navigation }) => {
                   if (res.data.success) {
                     Alert.alert('✅ Thành công', res.data.message || 'Đơn hàng đã được xác nhận.');
 
-                    // 🔹 Cập nhật state theo loại ghi chú
                     setOrderData((prev) => ({
                       ...prev,
                       status: statusField,
@@ -220,6 +266,20 @@ const OrderDetailScreen = ({ route, navigation }) => {
               Thông tin đơn hàng #{orderData.id}
             </Text>
 
+            {/* 🔹 Link tải về (nếu đơn hàng đã xác nhận) */}
+            {orderData.status === 'confirmed' && orderData.link_download && (
+              <View style={styles.orderInfo}>
+                <OrderPDFActions
+                  pdfUrl={orderData.link_download}
+                  showOpen={false}
+                  showDownload={false}
+                  showShare={true}
+                  showPrint={true} // Ẩn nút in
+                  showCopy={true}
+                />
+              </View>
+            )}
+
             <View style={styles.orderInfo}>
               <Text style={styles.label}>Trạng thái:</Text>
 
@@ -233,10 +293,16 @@ const OrderDetailScreen = ({ route, navigation }) => {
                     styles.status,
                     orderData.status === 'confirmed'
                       ? styles.statusConfirmed
-                      : styles.statusPending,
+                      : orderData.status === 'cancelled'
+                        ? styles.statusCancelled
+                        : styles.statusPending,
                   ]}
                 >
-                  {orderData.status === 'confirmed' ? 'Đã xác nhận' : 'Chờ xử lý'}
+                  {orderData.status === 'confirmed'
+                    ? 'Đã xác nhận'
+                    : orderData.status === 'cancelled'
+                      ? 'Đã hủy'
+                      : 'Chờ xử lý'}
                 </Text>
               )}
             </View>
@@ -382,7 +448,7 @@ const styles = StyleSheet.create({
   },
   modalActions: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     marginTop: 12,
     gap: 10,
   },
@@ -410,5 +476,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontStyle: 'italic',
     fontSize: 14,
+  },
+  statusCancelled: {
+    color: '#FF3B30', // đỏ
+    fontWeight: '700', // đậm
   },
 });

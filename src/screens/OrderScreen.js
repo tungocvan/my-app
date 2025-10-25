@@ -1,4 +1,4 @@
-﻿import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,42 +6,66 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
-  TextInput,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import axiosClient from '../api/axiosClient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
 import { ORDERS } from '../data/url';
 
+const STATUS_OPTIONS = [
+  { key: 'all', label: 'Tất cả' },
+  { key: 'pending', label: 'Chờ xử lý' },
+  { key: 'confirmed', label: 'Đã xác nhận' },
+  { key: 'cancelled', label: 'Đã hủy' },
+];
+
 const OrderScreen = () => {
   const user = useSelector((state) => state.user.user);
   const navigation = useNavigation();
+
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Bộ lọc
   const [statusFilter, setStatusFilter] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [isPickerVisible, setPickerVisible] = useState(false);
+  const [pickerType, setPickerType] = useState(null);
 
-  // Gọi API
+  const showPicker = (type) => {
+    setPickerType(type);
+    setPickerVisible(true);
+  };
+
+  const handleConfirm = (date) => {
+    const formatted = date.toLocaleDateString('vi-VN');
+    pickerType === 'from' ? setFromDate(formatted) : setToDate(formatted);
+    setPickerVisible(false);
+  };
+
+  const parseDate = (dateStr) => {
+    const [day, month, year] = dateStr.split('/');
+    return new Date(`${year}-${month}-${day}T00:00:00`);
+  };
+
   const fetchOrders = async () => {
     try {
       setLoading(true);
+      setError(null);
+
       const filterUser =
         user && user.is_admin == 0 ? { is_admin: user.is_admin, email: user.email } : {};
-      console.log('filterUser:', filterUser);
+
       const response = await axiosClient.post(ORDERS, filterUser);
       const data = response.data.data || [];
-      //console.log(data[0]);
       setOrders(data);
       setFilteredOrders(data);
     } catch (err) {
-      setError('Không thể tải danh sách đơn hàng!');
       console.error(err);
+      setError('Không thể tải danh sách đơn hàng!');
     } finally {
       setLoading(false);
     }
@@ -49,53 +73,37 @@ const OrderScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
-      fetchOrders();
+      // Gọi hàm async trong IIFE để tránh return Promise
+      (async () => {
+        await fetchOrders();
+      })();
     }, []),
   );
 
-  // 🔹 Chuyển dd/mm/yyyy -> Date object
-  const parseDate = (dateStr) => {
-    const [day, month, year] = dateStr.split('/');
-    return new Date(`${year}-${month}-${day}T00:00:00`);
-  };
-
-  // 🔹 Lọc danh sách dựa trên trạng thái và ngày
-  const applyFilters = (status = statusFilter, from = fromDate, to = toDate) => {
+  const applyFilters = useCallback(() => {
     let result = [...orders];
 
-    // Lọc trạng thái
-    if (status) result = result.filter((o) => o.status === status);
+    if (statusFilter && statusFilter !== 'all') {
+      result = result.filter((o) => o.status === statusFilter);
+    }
 
-    // Lọc ngày
-    if (from || to) {
-      let start = from ? parseDate(from) : null;
-      let end = to ? parseDate(to) : null;
-
-      if (from && !to) end = start;
-      if (!from && to) start = end;
-
-      if (end) end.setHours(23, 59, 59, 999);
+    if (fromDate || toDate) {
+      const start = fromDate ? parseDate(fromDate) : null;
+      const end = toDate ? parseDate(toDate) : null;
+      const adjustedEnd = end ? new Date(end.setHours(23, 59, 59, 999)) : null;
 
       result = result.filter((o) => {
         const d = new Date(o.created_at);
-        return (!start || d >= start) && (!end || d <= end);
+        return (!start || d >= start) && (!adjustedEnd || d <= adjustedEnd);
       });
     }
 
     setFilteredOrders(result);
-  };
+  }, [orders, statusFilter, fromDate, toDate]);
 
-  // 🔹 Khi click chọn trạng thái
-  const handleStatusChange = (value) => {
-    const newStatus = value === statusFilter ? '' : value;
-    setStatusFilter(newStatus);
-    applyFilters(newStatus, fromDate, toDate);
-  };
-
-  // 🔹 Khi nhấn Tìm kiếm ngày
-  const handleSearch = () => {
-    applyFilters(statusFilter, fromDate, toDate);
-  };
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
 
   const resetFilters = () => {
     setStatusFilter('');
@@ -104,18 +112,6 @@ const OrderScreen = () => {
     setFilteredOrders(orders);
   };
 
-  // Hàm format tự động
-  const formatDateInput = (text) => {
-    let digits = text.replace(/\D/g, '');
-
-    if (digits.length > 2) digits = digits.slice(0, 2) + '/' + digits.slice(2);
-    if (digits.length > 4) digits = digits.slice(0, 5) + '/' + digits.slice(5, 9); // dd/mm/yyyy max 4 chữ số năm
-    if (digits.length > 10) digits = digits.slice(0, 10); // hạn chế max 10 ký tự
-
-    return digits;
-  };
-
-  // Render item
   const renderOrderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
@@ -126,7 +122,7 @@ const OrderScreen = () => {
         <Text style={styles.orderId}>Đơn hàng #{item.id}</Text>
       </View>
 
-      <Text style={styles.email}>{item.user.name}</Text>
+      <Text style={styles.email}>{item.user?.name}</Text>
 
       <View style={styles.orderInfo}>
         <Text style={styles.label}>Tổng tiền:</Text>
@@ -138,10 +134,18 @@ const OrderScreen = () => {
         <Text
           style={[
             styles.status,
-            item.status === 'confirmed' ? styles.statusConfirmed : styles.statusPending,
+            item.status === 'confirmed'
+              ? styles.statusConfirmed
+              : item.status === 'cancelled'
+                ? styles.statusCancelled
+                : styles.statusPending,
           ]}
         >
-          {item.status === 'confirmed' ? 'Đã xác nhận' : 'Chờ xử lý'}
+          {item.status === 'confirmed'
+            ? 'Đã xác nhận'
+            : item.status === 'cancelled'
+              ? 'Đã hủy'
+              : 'Chờ xử lý'}
         </Text>
       </View>
 
@@ -152,38 +156,45 @@ const OrderScreen = () => {
     </TouchableOpacity>
   );
 
-  // Loading
-  if (loading)
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text>Đang tải đơn hàng...</Text>
-      </View>
-    );
-
   if (error)
     return (
       <View style={styles.center}>
-        <Text style={{ color: 'red' }}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchOrders}>
-          <Text style={{ color: 'white' }}>Thử lại</Text>
+        <Ionicons name="alert-circle-outline" size={48} color="red" />
+        <Text style={{ color: 'red', marginTop: 8 }}>{error}</Text>
+
+        <TouchableOpacity
+          style={[styles.retryButton, loading && { opacity: 0.7 }]}
+          onPress={fetchOrders}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text style={{ color: 'white' }}>Thử lại</Text>
+          )}
         </TouchableOpacity>
       </View>
     );
 
-  // UI hiển thị danh sách
   return (
     <View style={styles.container}>
+      {loading && orders.length > 0 && (
+        <View style={{ alignItems: 'center', marginVertical: 8 }}>
+          <ActivityIndicator size="small" color="#007AFF" />
+          <Text style={{ fontSize: 12, color: '#555' }}>Đang làm mới...</Text>
+        </View>
+      )}
+
       {/* Bộ lọc trạng thái */}
       <View style={styles.filterRow}>
-        {['pending', 'confirmed'].map((st) => (
+        {STATUS_OPTIONS.map((btn) => (
           <TouchableOpacity
-            key={st}
-            style={[styles.filterButton, statusFilter === st && styles.filterButtonActive]}
-            onPress={() => handleStatusChange(st)}
+            key={btn.key}
+            style={[styles.filterButton, statusFilter === btn.key && styles.filterButtonActive]}
+            onPress={() => setStatusFilter((prev) => (prev === btn.key ? '' : btn.key))}
           >
-            <Text style={[styles.filterText, statusFilter === st && styles.filterTextActive]}>
-              {st === 'pending' ? 'Chờ xử lý' : 'Đã xác nhận'}
+            <Text style={[styles.filterText, statusFilter === btn.key && styles.filterTextActive]}>
+              {btn.label}
             </Text>
           </TouchableOpacity>
         ))}
@@ -191,60 +202,53 @@ const OrderScreen = () => {
 
       {/* Bộ lọc ngày */}
       <View style={styles.dateFilter}>
-        <View style={styles.inputGroup}>
-          <Text style={styles.labelSmall}>Từ ngày:</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              value={fromDate}
-              onChangeText={(text) => setFromDate(formatDateInput(text))}
-              placeholder="dd/mm/yyyy"
-              keyboardType="number-pad"
-              style={styles.input}
-            />
-            {fromDate ? (
-              <TouchableOpacity onPress={() => setFromDate('')}>
-                <Ionicons name="close-circle" size={18} color="#999" />
-              </TouchableOpacity>
-            ) : null}
+        {['from', 'to'].map((type) => (
+          <View style={styles.inputGroup} key={type}>
+            <Text style={styles.labelSmall}>{type === 'from' ? 'Từ ngày:' : 'Đến ngày:'}</Text>
+            <TouchableOpacity style={styles.datePicker} onPress={() => showPicker(type)}>
+              <Ionicons name="calendar-outline" size={18} color="#007AFF" />
+              <Text style={styles.dateText}>
+                {(type === 'from' ? fromDate : toDate) || 'Chọn ngày'}
+              </Text>
+            </TouchableOpacity>
           </View>
-        </View>
+        ))}
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.labelSmall}>Đến ngày:</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              value={toDate}
-              onChangeText={(text) => setToDate(formatDateInput(text))}
-              placeholder="dd/mm/yyyy"
-              keyboardType="number-pad"
-              style={styles.input}
-            />
-            {toDate ? (
-              <TouchableOpacity onPress={() => setToDate('')}>
-                <Ionicons name="close-circle" size={18} color="#999" />
-              </TouchableOpacity>
-            ) : null}
-          </View>
-        </View>
-
-        <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+        <TouchableOpacity style={styles.searchButton} onPress={applyFilters}>
           <Ionicons name="search" size={20} color="white" />
         </TouchableOpacity>
       </View>
 
-      {/* Reset */}
+      <DateTimePickerModal
+        isVisible={isPickerVisible}
+        mode="date"
+        display="spinner"
+        onConfirm={handleConfirm}
+        onCancel={() => setPickerVisible(false)}
+        locale="vi-VN"
+        style={{ justifyContent: 'center', alignItems: 'center' }} // 👈 canh giữa modal
+        pickerContainerStyleIOS={{ alignItems: 'center' }} // cho iOS
+      />
+
       <TouchableOpacity style={styles.resetButton} onPress={resetFilters}>
         <Ionicons name="refresh" size={18} color="#007AFF" />
         <Text style={{ marginLeft: 4, color: '#007AFF' }}>Làm mới</Text>
       </TouchableOpacity>
 
-      {/* Danh sách */}
-      <FlatList
-        data={filteredOrders}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderOrderItem}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      />
+      {orders.length === 0 && !loading ? (
+        <View style={styles.center}>
+          <Text>Không có đơn hàng nào.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredOrders}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderOrderItem}
+          refreshing={loading}
+          onRefresh={fetchOrders}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
+      )}
     </View>
   );
 };
@@ -252,47 +256,25 @@ const OrderScreen = () => {
 export default OrderScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FB',
-    padding: 12,
-  },
-  header: {
-    fontSize: 20,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
+  container: { flex: 1, backgroundColor: '#F8F9FB', padding: 12 },
   filterRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'center',
     marginBottom: 10,
   },
   filterButton: {
     paddingVertical: 6,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     backgroundColor: '#E5E7EB',
     borderRadius: 8,
-    marginHorizontal: 5,
+    margin: 4,
   },
-  filterButtonActive: {
-    backgroundColor: '#007AFF',
-  },
-  filterText: {
-    color: '#333',
-  },
-  filterTextActive: {
-    color: '#fff',
-  },
-  dateFilter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  inputGroup: {
-    flex: 1,
-    marginHorizontal: 4,
-  },
+  filterButtonActive: { backgroundColor: '#007AFF' },
+  filterText: { color: '#333', fontSize: 13 },
+  filterTextActive: { color: '#fff', fontWeight: '600' },
+  dateFilter: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  inputGroup: { flex: 1, marginHorizontal: 4 },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -300,15 +282,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 8,
   },
-  input: {
-    flex: 1,
-    height: 36,
-  },
-  labelSmall: {
-    fontSize: 12,
-    color: '#555',
-    marginBottom: 4,
-  },
+  input: { flex: 1, height: 36 },
+  labelSmall: { fontSize: 12, color: '#555', marginBottom: 4 },
   searchButton: {
     backgroundColor: '#007AFF',
     padding: 10,
@@ -316,11 +291,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     marginHorizontal: 5,
   },
-  resetButton: {
-    flexDirection: 'row',
-    alignSelf: 'center',
-    marginVertical: 6,
-  },
+  resetButton: { flexDirection: 'row', alignSelf: 'center', marginVertical: 6 },
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -328,58 +299,36 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     elevation: 2,
   },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  orderId: {
-    marginLeft: 6,
-    fontWeight: '600',
-    color: '#007AFF',
-  },
-  email: {
-    color: '#444',
-    fontSize: 13,
-    marginBottom: 4,
-  },
-  orderInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  label: {
-    color: '#555',
-  },
-  total: {
-    fontWeight: 'bold',
-  },
-  status: {
-    fontWeight: '600',
-  },
-  statusPending: {
-    color: '#ff9500',
-  },
-  statusConfirmed: {
-    color: '#34C759',
-  },
-  date: {
-    color: '#777',
-  },
-  detailBox: {
-    marginTop: 8,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 8,
-    padding: 8,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
+  row: { flexDirection: 'row', alignItems: 'center' },
+  orderId: { marginLeft: 6, fontWeight: '600', color: '#007AFF' },
+  email: { color: '#444', fontSize: 13, marginBottom: 4 },
+  orderInfo: { flexDirection: 'row', justifyContent: 'space-between' },
+  label: { color: '#555' },
+  total: { fontWeight: 'bold' },
+  status: { fontWeight: '600' },
+  statusPending: { color: '#ff9500' },
+  statusConfirmed: { color: '#34C759' },
+  statusCancelled: { color: '#FF3B30', fontWeight: '700' },
+  date: { color: '#777' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   retryButton: {
-    marginTop: 10,
+    marginTop: 14,
     backgroundColor: '#007AFF',
-    paddingVertical: 8,
-    paddingHorizontal: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 30,
     borderRadius: 8,
+  },
+  datePicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    height: 36,
+  },
+  dateText: {
+    marginLeft: 8,
+    color: '#333',
+    fontSize: 13,
   },
 });
