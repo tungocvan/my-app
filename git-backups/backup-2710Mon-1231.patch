@@ -1,0 +1,859 @@
+diff --git a/src/components/MedicineList.js b/src/components/MedicineList.js
+index bc5b329..8eca6d6 100644
+--- a/src/components/MedicineList.js
++++ b/src/components/MedicineList.js
+@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
+ import { useDispatch, useSelector } from 'react-redux';
+ import { addToCart, removeFromCart } from '../redux/slices/cartSlice';
+ import SearchInput from '../components/SearchInput';
++import axiosClient from '../api/axiosClient';
+ 
+ export default function MedicineList() {
+   const [medicines, setMedicines] = useState([]);
+@@ -21,13 +22,16 @@ export default function MedicineList() {
+   const dispatch = useDispatch();
+   const cartItems = useSelector((state) => state.cart.items);
+ 
++  const commonFields = {
++    fields: ['id', 'ten_biet_duoc', 'don_gia', 'don_vi_tinh', 'quy_cach_dong_goi', 'link_hinh_anh'],
++  };
++
++  // 🔹 Gọi danh sách thuốc
+   const fetchMedicines = async () => {
+     try {
+-      const response = await fetch(MEDICINES, {
+-        method: 'POST',
+-        headers: { 'Content-Type': 'application/json' },
+-      });
+-      const json = await response.json();
++      const response = await axiosClient.post(MEDICINES, commonFields);
++      const json = response.data;
++
+       if (json.success && Array.isArray(json.data)) {
+         setMedicines(json.data);
+       } else {
+@@ -51,6 +55,7 @@ export default function MedicineList() {
+         title: item.ten_biet_duoc,
+         price: item.don_gia || 0,
+         dvt: item.don_vi_tinh,
++        quycach: item.quy_cach_dong_goi,
+         image: item.link_hinh_anh,
+         quantity: 1,
+       }),
+@@ -75,14 +80,15 @@ export default function MedicineList() {
+     }
+   };
+ 
++  // 🔹 Tìm kiếm thuốc
+   const fetchMedicinesByKeyword = async (keyword) => {
+     try {
+-      const response = await fetch(MEDICINES, {
+-        method: 'POST',
+-        headers: { 'Content-Type': 'application/json' },
+-        body: JSON.stringify({ search: keyword }),
++      const response = await axiosClient.post(MEDICINES, {
++        ...commonFields,
++        search: keyword,
+       });
+-      const json = await response.json();
++      const json = response.data;
++
+       if (json.success && Array.isArray(json.data)) {
+         setMedicines(json.data);
+       }
+@@ -97,15 +103,8 @@ export default function MedicineList() {
+ 
+     return (
+       <View style={styles.card}>
+-        {/* Hình ảnh bên trái */}
+-        <Image
+-          source={{
+-            uri: BASE_URL_IMG + '/' + item.link_hinh_anh,
+-          }}
+-          style={styles.image}
+-        />
++        <Image source={{ uri: BASE_URL_IMG + '/' + item.link_hinh_anh }} style={styles.image} />
+ 
+-        {/* Thông tin ở giữa */}
+         <View style={styles.info}>
+           <Text style={styles.name} numberOfLines={2}>
+             {item.ten_biet_duoc}
+@@ -117,16 +116,14 @@ export default function MedicineList() {
+ 
+           {item.don_vi_tinh && <Text style={styles.unit}>{item.don_vi_tinh}</Text>}
+ 
+-          {/* 🆕 Nút Chi tiết */}
+           <TouchableOpacity
+             style={styles.detailBtn}
+-            onPress={() => navigation.navigate('MedicineDetail', { medicine: item })}
++            onPress={() => navigation.navigate('MedicineDetail', { medicine_id: item.id })}
+           >
+             <Text style={styles.detailText}>Chi tiết</Text>
+           </TouchableOpacity>
+         </View>
+ 
+-        {/* Nút giỏ hàng bên phải */}
+         <View style={styles.actions}>
+           <TouchableOpacity
+             style={[styles.btn, quantity === 0 && { opacity: 0.5 }]}
+@@ -163,7 +160,7 @@ export default function MedicineList() {
+           if (text.length >= 3) {
+             fetchMedicinesByKeyword(text);
+           } else if (text === '') {
+-            fetchMedicines(); // reset
++            fetchMedicines(); // reset khi xoá tìm kiếm
+           }
+         }}
+       />
+@@ -196,26 +193,15 @@ const styles = StyleSheet.create({
+     borderRadius: 10,
+     marginRight: 10,
+   },
+-  info: {
+-    flex: 1,
+-    justifyContent: 'center',
+-  },
++  info: { flex: 1, justifyContent: 'center' },
+   name: {
+     fontSize: 15,
+     fontWeight: '600',
+     color: '#222',
+     marginBottom: 4,
+   },
+-  price: {
+-    fontSize: 15,
+-    fontWeight: 'bold',
+-    color: '#007AFF',
+-  },
+-  unit: {
+-    fontSize: 13,
+-    color: '#666',
+-    marginTop: 2,
+-  },
++  price: { fontSize: 15, fontWeight: 'bold', color: '#007AFF' },
++  unit: { fontSize: 13, color: '#666', marginTop: 2 },
+   detailBtn: {
+     alignSelf: 'flex-start',
+     backgroundColor: '#f1f1f1',
+@@ -224,15 +210,8 @@ const styles = StyleSheet.create({
+     borderRadius: 6,
+     marginTop: 6,
+   },
+-  detailText: {
+-    fontSize: 13,
+-    color: '#007AFF',
+-    fontWeight: '600',
+-  },
+-  actions: {
+-    flexDirection: 'row',
+-    alignItems: 'center',
+-  },
++  detailText: { fontSize: 13, color: '#007AFF', fontWeight: '600' },
++  actions: { flexDirection: 'row', alignItems: 'center' },
+   btn: {
+     backgroundColor: '#007AFF',
+     width: 28,
+@@ -241,19 +220,7 @@ const styles = StyleSheet.create({
+     alignItems: 'center',
+     justifyContent: 'center',
+   },
+-  btnText: {
+-    color: '#fff',
+-    fontSize: 18,
+-    lineHeight: 20,
+-  },
+-  qty: {
+-    marginHorizontal: 8,
+-    fontSize: 16,
+-    fontWeight: '600',
+-  },
+-  loading: {
+-    flex: 1,
+-    justifyContent: 'center',
+-    alignItems: 'center',
+-  },
++  btnText: { color: '#fff', fontSize: 18, lineHeight: 20 },
++  qty: { marginHorizontal: 8, fontSize: 16, fontWeight: '600' },
++  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+ });
+diff --git a/src/navigation/stacks/MedicineStack.js b/src/navigation/stacks/MedicineStack.js
+index a783260..0c9f7c5 100644
+--- a/src/navigation/stacks/MedicineStack.js
++++ b/src/navigation/stacks/MedicineStack.js
+@@ -14,7 +14,7 @@ const MedicineStack = () => (
+     <CustomStackNavigator.Screen
+       name="MedicineDetail"
+       component={MedicineDetailScreen}
+-      title="MedicineDetailScreen"
++      title="Chi tiết sản phẩm"
+       options={{ showLogout: false, showMenu: false, showBack: true }}
+     />
+   </CustomStackNavigator>
+diff --git a/src/redux/slices/cartSlice.js b/src/redux/slices/cartSlice.js
+index 56c7f34..f0e1988 100644
+--- a/src/redux/slices/cartSlice.js
++++ b/src/redux/slices/cartSlice.js
+@@ -23,7 +23,7 @@ const cartSlice = createSlice({
+ 
+       // Cập nhật tổng
+       state.totalQuantity = state.items.reduce((sum, i) => sum + i.quantity, 0);
+-      state.totalPrice = state.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
++      state.totalPrice = state.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+     },
+ 
+     removeFromCart: (state, action) => {
+@@ -31,7 +31,7 @@ const cartSlice = createSlice({
+       state.items = state.items.filter((item) => item.id !== id);
+ 
+       state.totalQuantity = state.items.reduce((sum, i) => sum + i.quantity, 0);
+-      state.totalPrice = state.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
++      state.totalPrice = state.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+     },
+ 
+     clearCart: (state) => {
+diff --git a/src/screens/CartScreen.js b/src/screens/CartScreen.js
+index 222ee17..1ff0e73 100644
+--- a/src/screens/CartScreen.js
++++ b/src/screens/CartScreen.js
+@@ -5,52 +5,77 @@ import { useNavigation } from '@react-navigation/native';
+ import { removeFromCart, addToCart } from '../redux/slices/cartSlice';
+ import { BASE_URL_IMG } from '../data/url';
+ 
++// 🔹 Hàm tính số lượng thực tế trong quy cách
++const getSoluong = (quycach) => {
++  if (!quycach || typeof quycach !== 'string') return 1;
++  const numbers = quycach.match(/\d+/g);
++  if (!numbers || numbers.length === 0) return 1;
++  const num1 = parseInt(numbers[0]);
++  const num2 = parseInt(numbers[1] || 1);
++  return num1 * num2;
++};
++
+ const CartScreen = () => {
+   const navigation = useNavigation();
+   const dispatch = useDispatch();
+-  const { items, totalPrice } = useSelector((state) => state.cart);
+-  // console.log('items:', items);
+-  const renderItem = ({ item }) => (
+-    <View style={styles.itemContainer}>
+-      <Image source={{ uri: BASE_URL_IMG + '/' + item.image }} style={styles.image} />
+-
+-      <View style={{ flex: 1, marginLeft: 10 }}>
+-        <Text style={styles.title}>{item.title || item.name}</Text>
+-        <Text style={styles.price}>{Number(item.price).toLocaleString('vi-VN')}đ</Text>
+-        <Text>{item.dvt || item.don_vi_tinh}</Text>
+-        <View style={styles.rowQty}>
+-          <Pressable
+-            style={styles.qtyButton}
+-            onPress={() =>
+-              dispatch(
+-                addToCart({
+-                  ...item,
+-                  quantity: item.quantity > 1 ? -1 : 0, // giảm 1 hoặc xoá nếu 0
+-                }),
+-              )
+-            }
+-          >
+-            <Text style={styles.qtyButtonText}>-</Text>
+-          </Pressable>
+-
+-          <Text style={styles.qtyText}>{item.quantity}</Text>
+-
+-          <Pressable
+-            style={styles.qtyButton}
+-            onPress={
+-              () => dispatch(addToCart({ ...item, quantity: 1 })) // tăng 1
+-            }
+-          >
+-            <Text style={styles.qtyButtonText}>+</Text>
+-          </Pressable>
+-
+-          <Pressable style={styles.removeBtn} onPress={() => dispatch(removeFromCart(item.id))}>
+-            <Text style={styles.removeText}>Xóa</Text>
+-          </Pressable>
++  const { items } = useSelector((state) => state.cart);
++
++  // ✅ Tính tổng cộng chính xác theo quy cách * quantity
++  const totalPrice = items.reduce((sum, item) => {
++    const soluong = getSoluong(item.quycach);
++    return sum + (item.price || 0) * (item.quantity || 1) * soluong;
++  }, 0);
++
++  const renderItem = ({ item }) => {
++    const soluong = getSoluong(item.quycach);
++    const itemTotal = (item.price || 0) * (item.quantity || 1) * soluong;
++    const slthucte = soluong * item.quantity;
++
++    return (
++      <View style={styles.itemContainer}>
++        <Image source={{ uri: BASE_URL_IMG + '/' + item.image }} style={styles.image} />
++
++        <View style={{ flex: 1, marginLeft: 10 }}>
++          <Text style={styles.title}>{item.title || item.name}</Text>
++          <Text style={styles.price}>{Number(item.price).toLocaleString('vi-VN')}đ</Text>
++          <Text style={styles.subInfo}>
++            {item.dvt || item.don_vi_tinh} - {item.quycach || ''}
++          </Text>
++          <Text style={styles.soluong}>Số lượng thực tế: {slthucte.toLocaleString('vi-VN')}</Text>
++          <Text style={styles.itemTotal}>Thành tiền: {itemTotal.toLocaleString('vi-VN')}đ</Text>
++
++          <View style={styles.rowQty}>
++            <Pressable
++              style={styles.qtyButton}
++              onPress={() =>
++                dispatch(
++                  addToCart({
++                    ...item,
++                    quantity: item.quantity > 1 ? -1 : 0,
++                  }),
++                )
++              }
++            >
++              <Text style={styles.qtyButtonText}>-</Text>
++            </Pressable>
++
++            <Text style={styles.qtyText}>{item.quantity}</Text>
++
++            <Pressable
++              style={styles.qtyButton}
++              onPress={() => dispatch(addToCart({ ...item, quantity: 1 }))}
++            >
++              <Text style={styles.qtyButtonText}>+</Text>
++            </Pressable>
++
++            <Pressable style={styles.removeBtn} onPress={() => dispatch(removeFromCart(item.id))}>
++              <Text style={styles.removeText}>Xóa</Text>
++            </Pressable>
++          </View>
+         </View>
+       </View>
+-    </View>
+-  );
++    );
++  };
+ 
+   return (
+     <View style={styles.container}>
+@@ -70,7 +95,7 @@ const CartScreen = () => {
+           />
+ 
+           <View style={styles.footer}>
+-            <Text style={styles.totalText}>Tổng cộng: {totalPrice.toLocaleString()}đ</Text>
++            <Text style={styles.totalText}>Tổng cộng: {totalPrice.toLocaleString('vi-VN')}đ</Text>
+ 
+             <Pressable
+               style={styles.checkoutButton}
+@@ -88,10 +113,7 @@ const CartScreen = () => {
+ export default CartScreen;
+ 
+ const styles = StyleSheet.create({
+-  container: {
+-    flex: 1,
+-    backgroundColor: '#fff',
+-  },
++  container: { flex: 1, backgroundColor: '#fff' },
+   header: {
+     fontSize: 20,
+     fontWeight: 'bold',
+@@ -117,19 +139,20 @@ const styles = StyleSheet.create({
+     borderRadius: 6,
+     backgroundColor: '#f0f0f0',
+   },
+-  title: {
+-    fontSize: 14,
+-    fontWeight: '500',
+-    marginBottom: 4,
+-  },
+-  price: {
++  title: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
++  price: { fontSize: 13, color: 'red', marginBottom: 4 },
++  subInfo: { fontSize: 13, color: '#555' },
++  soluong: { fontSize: 12, color: '#666', marginTop: 4 },
++  itemTotal: {
+     fontSize: 13,
+-    color: 'red',
+-    marginBottom: 6,
++    color: '#333',
++    fontWeight: '600',
++    marginTop: 2,
+   },
+   rowQty: {
+     flexDirection: 'row',
+     alignItems: 'center',
++    marginTop: 6,
+   },
+   qtyButton: {
+     width: 28,
+@@ -139,16 +162,8 @@ const styles = StyleSheet.create({
+     justifyContent: 'center',
+     alignItems: 'center',
+   },
+-  qtyButtonText: {
+-    fontSize: 16,
+-    fontWeight: 'bold',
+-    color: '#333',
+-  },
+-  qtyText: {
+-    marginHorizontal: 10,
+-    fontSize: 15,
+-    fontWeight: 'bold',
+-  },
++  qtyButtonText: { fontSize: 16, fontWeight: 'bold', color: '#333' },
++  qtyText: { marginHorizontal: 10, fontSize: 15, fontWeight: 'bold' },
+   removeBtn: {
+     marginLeft: 'auto',
+     backgroundColor: '#ffebee',
+@@ -156,16 +171,8 @@ const styles = StyleSheet.create({
+     paddingVertical: 4,
+     borderRadius: 4,
+   },
+-  removeText: {
+-    color: '#d32f2f',
+-    fontSize: 12,
+-    fontWeight: '500',
+-  },
+-  emptyContainer: {
+-    flex: 1,
+-    justifyContent: 'center',
+-    alignItems: 'center',
+-  },
++  removeText: { color: '#d32f2f', fontSize: 12, fontWeight: '500' },
++  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+   footer: {
+     position: 'absolute',
+     bottom: 0,
+@@ -179,18 +186,12 @@ const styles = StyleSheet.create({
+     justifyContent: 'space-between',
+     alignItems: 'center',
+   },
+-  totalText: {
+-    fontSize: 16,
+-    fontWeight: 'bold',
+-  },
++  totalText: { fontSize: 16, fontWeight: 'bold' },
+   checkoutButton: {
+     backgroundColor: '#4caf50',
+     paddingVertical: 8,
+     paddingHorizontal: 16,
+     borderRadius: 6,
+   },
+-  checkoutText: {
+-    color: '#fff',
+-    fontWeight: 'bold',
+-  },
++  checkoutText: { color: '#fff', fontWeight: 'bold' },
+ });
+diff --git a/src/screens/CheckoutScreen.js b/src/screens/CheckoutScreen.js
+index cb59a9d..a62fab7 100644
+--- a/src/screens/CheckoutScreen.js
++++ b/src/screens/CheckoutScreen.js
+@@ -15,17 +15,32 @@ import { clearCart } from '../redux/slices/cartSlice';
+ import { createOrder } from '../api/orderApi';
+ import CustomerInfoBox from '../components/CustomerInfoBox';
+ 
+-const CheckoutScreen = () => {
++// 🧮 Hàm tách số và nhân quy cách (ví dụ: "Hộp 10 ống x 10ml" -> 10 * 10 = 100)
++const extractQuyCachFactor = (quycach) => {
++  if (!quycach) return 1;
++  const numbers = quycach.match(/\d+/g);
++  if (!numbers || numbers.length === 0) return 1;
++  if (numbers.length === 1) return parseInt(numbers[0], 10);
++  return numbers.slice(0, 2).reduce((a, b) => a * b, 1);
++};
++
++export default function CheckoutScreen() {
+   const navigation = useNavigation();
+   const dispatch = useDispatch();
+   const cartItems = useSelector((state) => state.cart.items);
+-  const { totalPrice } = useSelector((state) => state.cart);
+   const { user } = useSelector((state) => state.user);
+-  const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+ 
+   const [isSubmitting, setIsSubmitting] = useState(false);
+   const [orderNote, setOrderNote] = useState('');
+-  const [noteModalVisible, setNoteModalVisible] = useState(false); // 🆕 modal ghi chú
++  const [noteModalVisible, setNoteModalVisible] = useState(false);
++
++  // ✅ Tính tổng tiền (tự động nhân theo quy cách)
++  const totalAmount = cartItems.reduce((sum, item) => {
++    const quyCachFactor = item.soluong_quycach
++      ? Number(item.soluong_quycach)
++      : extractQuyCachFactor(item.quycach);
++    return sum + item.price * item.quantity * quyCachFactor;
++  }, 0);
+ 
+   const handleConfirmOrder = async () => {
+     if (cartItems.length === 0) {
+@@ -36,27 +51,31 @@ const CheckoutScreen = () => {
+     setIsSubmitting(true);
+ 
+     const order = {
+-      user_id: user.id,
++      user_id: user?.id || null,
+       email: user?.email || 'guest@example.com',
+-      orderDetail: cartItems.map((item) => ({
+-        product_id: item.id,
+-        title:
+-          item.ten_biet_duoc || item.title || item.name || item.product?.name || 'Không rõ tên',
+-        price: item.price,
+-        dvt: item.don_vi_tinh,
+-        quantity: item.quantity,
+-        total: item.price * item.quantity,
+-      })),
+-      total: totalPrice,
++      orderDetail: cartItems.map((item) => {
++        const quyCachFactor = item.soluong_quycach
++          ? Number(item.soluong_quycach)
++          : extractQuyCachFactor(item.quycach);
++        return {
++          product_id: item.id,
++          title: item.ten_biet_duoc || item.title || 'Không rõ tên',
++          price: item.price,
++          dvt: item.dvt || '',
++          quantity: Number(item.quantity) * quyCachFactor,
++          quy_cach: item.quycach || '',
++          total: item.price * item.quantity * quyCachFactor,
++        };
++      }),
++      total: totalAmount,
+       status: 'pending',
+-      order_note: orderNote || '', // 🆕 thêm ghi chú
++      order_note: orderNote,
+     };
+ 
+-    //console.log('🧾 Order chuẩn bị gửi:', JSON.stringify(order, null, 2));
+-
+     try {
+       await createOrder(order);
+-      Alert.alert('Thanh toán thành công 🎉', 'Đơn hàng của bạn đã được xác nhận!', [
++      console.log('order:', order);
++      Alert.alert('🎉 Thành công', 'Đơn hàng của bạn đã được xác nhận!', [
+         {
+           text: 'OK',
+           onPress: () => {
+@@ -76,43 +95,56 @@ const CheckoutScreen = () => {
+   return (
+     <View style={styles.container}>
+       <ScrollView contentContainerStyle={styles.content}>
+-        {/* 🧍 Thông tin khách hàng */}
+         <CustomerInfoBox user={user?.extra_user} />
+ 
+-        {/* 🧾 Danh sách sản phẩm */}
+         {cartItems.length === 0 ? (
+           <Text style={styles.emptyText}>Giỏ hàng của bạn đang trống</Text>
+         ) : (
+-          cartItems.map((item) => (
+-            <View key={item.id} style={styles.cartItem}>
+-              <View style={{ flex: 1 }}>
+-                <Text style={styles.itemName}>{item.title || item.name || item.ten_biet_duoc}</Text>
+-                <Text style={styles.itemQuantity}>Số lượng: {item.quantity}</Text>
+-                <Text>{item.dvt || item.don_vi_tinh}</Text>
++          cartItems.map((item) => {
++            const quyCachFactor = item.soluong_quycach
++              ? Number(item.soluong_quycach)
++              : extractQuyCachFactor(item.quycach);
++            const itemTotal = item.price * item.quantity * quyCachFactor;
++
++            return (
++              <View key={item.id} style={styles.cartItem}>
++                <View style={{ flex: 1 }}>
++                  <Text style={styles.itemName}>
++                    {item.ten_biet_duoc || item.title || 'Không rõ tên'}
++                  </Text>
++                  <Text style={styles.itemQuantity}>
++                    {item.quantity} x {item.quycach ? `(${item.quycach})` : ''}
++                  </Text>
++                  <Text style={styles.itemSubInfo}>
++                    Tổng {item.quantity * quyCachFactor} {item.dvt || ''}
++                    {' x '}
++                    {item.price.toLocaleString()}đ
++                  </Text>
++                </View>
++                <Text style={styles.itemPrice}>{itemTotal.toLocaleString()}đ</Text>
+               </View>
+-              <Text style={styles.itemPrice}>{(item.price * item.quantity).toLocaleString()}đ</Text>
+-            </View>
+-          ))
++            );
++          })
+         )}
+ 
+-        {/* 🗒️ Nút mở modal ghi chú */}
++        {/* Ghi chú */}
+         <Pressable style={styles.noteButton} onPress={() => setNoteModalVisible(true)}>
+           <Text style={styles.noteButtonLabel}>📝 Ghi chú đơn hàng</Text>
+           <Text style={styles.noteButtonValue}>
+             {orderNote
+               ? `"${orderNote}"`
+-              : 'Nhấn để thêm ghi chú...nếu có thay đổi thông tin nhận hàng hoặc hẹn giờ giao hàng,...'}
++              : 'Nhấn để thêm ghi chú... (thay đổi thông tin nhận hàng, hẹn giờ giao...)'}
+           </Text>
+         </Pressable>
+ 
+-        {/* Tổng tiền */}
++        {/* Tổng cộng */}
+         <View style={styles.totalRow}>
+           <Text style={styles.totalLabel}>Tổng cộng:</Text>
+           <Text style={styles.totalValue}>{totalAmount.toLocaleString()}đ</Text>
+         </View>
+       </ScrollView>
+ 
+-      {/* 🔹 Modal nhập ghi chú */}
++      {/* Modal */}
+       <Modal
+         visible={noteModalVisible}
+         transparent
+@@ -122,7 +154,6 @@ const CheckoutScreen = () => {
+         <View style={styles.modalOverlay}>
+           <View style={styles.modalContainer}>
+             <Text style={styles.modalTitle}>Nhập ghi chú đơn hàng</Text>
+-
+             <TextInput
+               style={styles.noteInput}
+               value={orderNote}
+@@ -132,7 +163,6 @@ const CheckoutScreen = () => {
+               numberOfLines={5}
+               textAlignVertical="top"
+             />
+-
+             <View style={styles.modalActions}>
+               <Pressable
+                 style={[styles.modalButton, { backgroundColor: '#aaa' }]}
+@@ -144,19 +174,18 @@ const CheckoutScreen = () => {
+                 style={[styles.modalButton, { backgroundColor: '#007AFF' }]}
+                 onPress={() => setNoteModalVisible(false)}
+               >
+-                <Text style={styles.modalButtonText}>Lưu ghi chú</Text>
++                <Text style={styles.modalButtonText}>Lưu</Text>
+               </Pressable>
+             </View>
+           </View>
+         </View>
+       </Modal>
+ 
+-      {/* Thanh hành động */}
++      {/* Footer */}
+       <View style={styles.footer}>
+         <Pressable style={[styles.button, styles.backButton]} onPress={() => navigation.goBack()}>
+           <Text style={styles.buttonText}>Quay lại</Text>
+         </Pressable>
+-
+         <Pressable
+           style={[styles.button, styles.confirmButton, isSubmitting && { opacity: 0.6 }]}
+           onPress={handleConfirmOrder}
+@@ -169,10 +198,9 @@ const CheckoutScreen = () => {
+       </View>
+     </View>
+   );
+-};
+-
+-export default CheckoutScreen;
++}
+ 
++// ================== STYLES ==================
+ const styles = StyleSheet.create({
+   container: { flex: 1, backgroundColor: '#fafafa' },
+   content: { padding: 16 },
+@@ -186,9 +214,8 @@ const styles = StyleSheet.create({
+   },
+   itemName: { fontSize: 16, fontWeight: '600', color: '#333' },
+   itemQuantity: { fontSize: 13, color: '#777' },
++  itemSubInfo: { fontSize: 12, color: '#666', fontStyle: 'italic' },
+   itemPrice: { fontSize: 15, fontWeight: '600', color: '#e11d48' },
+-
+-  // 🗒️ Ghi chú
+   noteButton: {
+     marginTop: 16,
+     backgroundColor: '#fff',
+@@ -199,7 +226,6 @@ const styles = StyleSheet.create({
+   },
+   noteButtonLabel: { fontWeight: '600', color: '#007AFF', marginBottom: 4 },
+   noteButtonValue: { color: '#333', fontStyle: 'italic' },
+-
+   totalRow: {
+     marginTop: 16,
+     flexDirection: 'row',
+@@ -210,7 +236,6 @@ const styles = StyleSheet.create({
+   },
+   totalLabel: { fontSize: 16, fontWeight: '600', color: '#222' },
+   totalValue: { fontSize: 18, fontWeight: '700', color: '#16a34a' },
+-
+   footer: {
+     flexDirection: 'row',
+     borderTopWidth: 1,
+@@ -228,8 +253,6 @@ const styles = StyleSheet.create({
+   backButton: { backgroundColor: 'red', marginRight: 8 },
+   confirmButton: { backgroundColor: '#2563eb' },
+   buttonText: { color: '#fff', fontWeight: '600' },
+-
+-  // 🔹 Modal
+   modalOverlay: {
+     flex: 1,
+     justifyContent: 'center',
+diff --git a/src/screens/MedicineDetailScreen.js b/src/screens/MedicineDetailScreen.js
+index efd5a42..9a83c6a 100644
+--- a/src/screens/MedicineDetailScreen.js
++++ b/src/screens/MedicineDetailScreen.js
+@@ -1,13 +1,74 @@
+-﻿import React from 'react';
+-import { View, Text, Image, ScrollView, StyleSheet } from 'react-native';
+-import { BASE_URL_IMG } from '../data/url';
++﻿import React, { useEffect, useState } from 'react';
++import { View, Text, Image, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
++import { BASE_URL_IMG, MEDICINES } from '../data/url';
++import axiosClient from '../api/axiosClient';
+ 
+ export default function MedicineDetailScreen({ route }) {
+-  const { medicine } = route.params;
++  const { medicine_id } = route.params;
++  const [medicine, setMedicine] = useState(null);
++  const [loading, setLoading] = useState(true);
++
++  useEffect(() => {
++    const fetchMedicine = async () => {
++      try {
++        const res = await axiosClient.post(MEDICINES, {
++          id: medicine_id,
++          fields: [
++            'id',
++            'ten_biet_duoc',
++            'ten_hoat_chat',
++            'nong_do_ham_luong',
++            'dang_bao_che',
++            'duong_dung',
++            'co_so_san_xuat',
++            'nuoc_san_xuat',
++            'han_dung',
++            'don_gia',
++            'link_hinh_anh',
++          ],
++        });
++
++        if (res.data?.success && res.data.data?.length > 0) {
++          setMedicine(res.data.data[0]); // lấy record đầu tiên
++        } else {
++          console.log('Không tìm thấy thuốc');
++        }
++      } catch (error) {
++        console.error('Lỗi khi tải chi tiết thuốc:', error);
++      } finally {
++        setLoading(false);
++      }
++    };
++
++    fetchMedicine();
++  }, [medicine_id]);
++
++  if (loading) {
++    return (
++      <View style={styles.center}>
++        <ActivityIndicator size="large" color="#007AFF" />
++        <Text style={{ marginTop: 10 }}>Đang tải thông tin thuốc...</Text>
++      </View>
++    );
++  }
++
++  if (!medicine) {
++    return (
++      <View style={styles.center}>
++        <Text>Không tìm thấy thông tin thuốc.</Text>
++      </View>
++    );
++  }
+ 
+   return (
+     <ScrollView style={styles.container}>
+-      <Image source={{ uri: BASE_URL_IMG + '/' + medicine.link_hinh_anh }} style={styles.image} />
++      {medicine.link_hinh_anh ? (
++        <Image source={{ uri: `${BASE_URL_IMG}/${medicine.link_hinh_anh}` }} style={styles.image} />
++      ) : (
++        <View style={[styles.image, styles.noImage]}>
++          <Text style={{ color: '#999' }}>Không có hình ảnh</Text>
++        </View>
++      )}
+ 
+       <Text style={styles.name}>{medicine.ten_biet_duoc}</Text>
+       <Text style={styles.price}>
+@@ -16,25 +77,25 @@ export default function MedicineDetailScreen({ route }) {
+ 
+       <View style={styles.infoBox}>
+         <Text style={styles.label}>Hoạt chất:</Text>
+-        <Text style={styles.value}>{medicine.ten_hoat_chat}</Text>
++        <Text style={styles.value}>{medicine.ten_hoat_chat || '-'}</Text>
+ 
+         <Text style={styles.label}>Hàm lượng:</Text>
+-        <Text style={styles.value}>{medicine.nong_do_ham_luong}</Text>
++        <Text style={styles.value}>{medicine.nong_do_ham_luong || '-'}</Text>
+ 
+         <Text style={styles.label}>Dạng bào chế:</Text>
+-        <Text style={styles.value}>{medicine.dang_bao_che}</Text>
++        <Text style={styles.value}>{medicine.dang_bao_che || '-'}</Text>
+ 
+         <Text style={styles.label}>Đường dùng:</Text>
+-        <Text style={styles.value}>{medicine.duong_dung}</Text>
++        <Text style={styles.value}>{medicine.duong_dung || '-'}</Text>
+ 
+         <Text style={styles.label}>Cơ sở sản xuất:</Text>
+-        <Text style={styles.value}>{medicine.co_so_san_xuat}</Text>
++        <Text style={styles.value}>{medicine.co_so_san_xuat || '-'}</Text>
+ 
+         <Text style={styles.label}>Nước sản xuất:</Text>
+-        <Text style={styles.value}>{medicine.nuoc_san_xuat}</Text>
++        <Text style={styles.value}>{medicine.nuoc_san_xuat || '-'}</Text>
+ 
+         <Text style={styles.label}>Hạn dùng:</Text>
+-        <Text style={styles.value}>{medicine.han_dung}</Text>
++        <Text style={styles.value}>{medicine.han_dung || '-'}</Text>
+       </View>
+     </ScrollView>
+   );
+@@ -48,6 +109,11 @@ const styles = StyleSheet.create({
+     borderRadius: 12,
+     resizeMode: 'cover',
+   },
++  noImage: {
++    alignItems: 'center',
++    justifyContent: 'center',
++    backgroundColor: '#f4f4f4',
++  },
+   name: {
+     fontSize: 18,
+     fontWeight: '700',
+@@ -63,4 +129,5 @@ const styles = StyleSheet.create({
+   infoBox: { marginTop: 10 },
+   label: { fontWeight: '600', marginTop: 8, color: '#555' },
+   value: { color: '#222', fontSize: 14 },
++  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+ });
+diff --git a/src/screens/ProfileScreen.js b/src/screens/ProfileScreen.js
+index a5c390f..d746f33 100644
+--- a/src/screens/ProfileScreen.js
++++ b/src/screens/ProfileScreen.js
+@@ -42,17 +42,16 @@ const ProfileScreen = () => {
+       }
+     } catch (error) {
+       // 3️⃣ Cập nhật bảng user_info
+-      let extra_user = {
+-        address: 'Vui lòng cập nhật địa chỉ',
+-        phone: 'Vui lòng cập nhật số điện thoại',
+-        email: user.email || '—',
+-      };
+-      const { data } = await axiosClient.post(`${USER_OPTIONS}/update`, {
+-        user_id: userId,
+-        user_info: { ...extra_user },
+-      });
+-
+-      if (!data.success) Alert.alert('❌ Lỗi', 'Không thể tải thông tin hồ sơ');
++      // let extra_user = {
++      //   address: 'Vui lòng cập nhật địa chỉ',
++      //   phone: 'Vui lòng cập nhật số điện thoại',
++      //   email: user.email || '—',
++      // };
++      // const { data } = await axiosClient.post(`${USER_OPTIONS}/update`, {
++      //   user_id: userId,
++      //   user_info: { ...extra_user },
++      // });
++      // if (!data.success) Alert.alert('❌ Lỗi', 'Không thể tải thông tin hồ sơ');
+     } finally {
+       setLoading(false);
+     }

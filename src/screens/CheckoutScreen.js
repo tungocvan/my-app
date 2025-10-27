@@ -15,17 +15,32 @@ import { clearCart } from '../redux/slices/cartSlice';
 import { createOrder } from '../api/orderApi';
 import CustomerInfoBox from '../components/CustomerInfoBox';
 
-const CheckoutScreen = () => {
+// 🧮 Hàm tách số và nhân quy cách (ví dụ: "Hộp 10 ống x 10ml" -> 10 * 10 = 100)
+const extractQuyCachFactor = (quycach) => {
+  if (!quycach) return 1;
+  const numbers = quycach.match(/\d+/g);
+  if (!numbers || numbers.length === 0) return 1;
+  if (numbers.length === 1) return parseInt(numbers[0], 10);
+  return numbers.slice(0, 2).reduce((a, b) => a * b, 1);
+};
+
+export default function CheckoutScreen() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
-  const { totalPrice } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.user);
-  const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderNote, setOrderNote] = useState('');
-  const [noteModalVisible, setNoteModalVisible] = useState(false); // 🆕 modal ghi chú
+  const [noteModalVisible, setNoteModalVisible] = useState(false);
+
+  // ✅ Tính tổng tiền (tự động nhân theo quy cách)
+  const totalAmount = cartItems.reduce((sum, item) => {
+    const quyCachFactor = item.soluong_quycach
+      ? Number(item.soluong_quycach)
+      : extractQuyCachFactor(item.quycach);
+    return sum + item.price * item.quantity * quyCachFactor;
+  }, 0);
 
   const handleConfirmOrder = async () => {
     if (cartItems.length === 0) {
@@ -36,27 +51,31 @@ const CheckoutScreen = () => {
     setIsSubmitting(true);
 
     const order = {
-      user_id: user.id,
+      user_id: user?.id || null,
       email: user?.email || 'guest@example.com',
-      orderDetail: cartItems.map((item) => ({
-        product_id: item.id,
-        title:
-          item.ten_biet_duoc || item.title || item.name || item.product?.name || 'Không rõ tên',
-        price: item.price,
-        dvt: item.don_vi_tinh,
-        quantity: item.quantity,
-        total: item.price * item.quantity,
-      })),
-      total: totalPrice,
+      orderDetail: cartItems.map((item) => {
+        const quyCachFactor = item.soluong_quycach
+          ? Number(item.soluong_quycach)
+          : extractQuyCachFactor(item.quycach);
+        return {
+          product_id: item.id,
+          title: item.ten_biet_duoc || item.title || 'Không rõ tên',
+          price: item.price,
+          dvt: item.dvt || '',
+          quantity: Number(item.quantity) * quyCachFactor,
+          quy_cach: item.quycach || '',
+          total: item.price * item.quantity * quyCachFactor,
+        };
+      }),
+      total: totalAmount,
       status: 'pending',
-      order_note: orderNote || '', // 🆕 thêm ghi chú
+      order_note: orderNote,
     };
-
-    //console.log('🧾 Order chuẩn bị gửi:', JSON.stringify(order, null, 2));
 
     try {
       await createOrder(order);
-      Alert.alert('Thanh toán thành công 🎉', 'Đơn hàng của bạn đã được xác nhận!', [
+      console.log('order:', order);
+      Alert.alert('🎉 Thành công', 'Đơn hàng của bạn đã được xác nhận!', [
         {
           text: 'OK',
           onPress: () => {
@@ -76,43 +95,56 @@ const CheckoutScreen = () => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        {/* 🧍 Thông tin khách hàng */}
         <CustomerInfoBox user={user?.extra_user} />
 
-        {/* 🧾 Danh sách sản phẩm */}
         {cartItems.length === 0 ? (
           <Text style={styles.emptyText}>Giỏ hàng của bạn đang trống</Text>
         ) : (
-          cartItems.map((item) => (
-            <View key={item.id} style={styles.cartItem}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.itemName}>{item.title || item.name || item.ten_biet_duoc}</Text>
-                <Text style={styles.itemQuantity}>Số lượng: {item.quantity}</Text>
-                <Text>{item.dvt || item.don_vi_tinh}</Text>
+          cartItems.map((item) => {
+            const quyCachFactor = item.soluong_quycach
+              ? Number(item.soluong_quycach)
+              : extractQuyCachFactor(item.quycach);
+            const itemTotal = item.price * item.quantity * quyCachFactor;
+
+            return (
+              <View key={item.id} style={styles.cartItem}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.itemName}>
+                    {item.ten_biet_duoc || item.title || 'Không rõ tên'}
+                  </Text>
+                  <Text style={styles.itemQuantity}>
+                    {item.quantity} x {item.quycach ? `(${item.quycach})` : ''}
+                  </Text>
+                  <Text style={styles.itemSubInfo}>
+                    Tổng {item.quantity * quyCachFactor} {item.dvt || ''}
+                    {' x '}
+                    {item.price.toLocaleString()}đ
+                  </Text>
+                </View>
+                <Text style={styles.itemPrice}>{itemTotal.toLocaleString()}đ</Text>
               </View>
-              <Text style={styles.itemPrice}>{(item.price * item.quantity).toLocaleString()}đ</Text>
-            </View>
-          ))
+            );
+          })
         )}
 
-        {/* 🗒️ Nút mở modal ghi chú */}
+        {/* Ghi chú */}
         <Pressable style={styles.noteButton} onPress={() => setNoteModalVisible(true)}>
           <Text style={styles.noteButtonLabel}>📝 Ghi chú đơn hàng</Text>
           <Text style={styles.noteButtonValue}>
             {orderNote
               ? `"${orderNote}"`
-              : 'Nhấn để thêm ghi chú...nếu có thay đổi thông tin nhận hàng hoặc hẹn giờ giao hàng,...'}
+              : 'Nhấn để thêm ghi chú... (thay đổi thông tin nhận hàng, hẹn giờ giao...)'}
           </Text>
         </Pressable>
 
-        {/* Tổng tiền */}
+        {/* Tổng cộng */}
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Tổng cộng:</Text>
           <Text style={styles.totalValue}>{totalAmount.toLocaleString()}đ</Text>
         </View>
       </ScrollView>
 
-      {/* 🔹 Modal nhập ghi chú */}
+      {/* Modal */}
       <Modal
         visible={noteModalVisible}
         transparent
@@ -122,7 +154,6 @@ const CheckoutScreen = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Nhập ghi chú đơn hàng</Text>
-
             <TextInput
               style={styles.noteInput}
               value={orderNote}
@@ -132,7 +163,6 @@ const CheckoutScreen = () => {
               numberOfLines={5}
               textAlignVertical="top"
             />
-
             <View style={styles.modalActions}>
               <Pressable
                 style={[styles.modalButton, { backgroundColor: '#aaa' }]}
@@ -144,19 +174,18 @@ const CheckoutScreen = () => {
                 style={[styles.modalButton, { backgroundColor: '#007AFF' }]}
                 onPress={() => setNoteModalVisible(false)}
               >
-                <Text style={styles.modalButtonText}>Lưu ghi chú</Text>
+                <Text style={styles.modalButtonText}>Lưu</Text>
               </Pressable>
             </View>
           </View>
         </View>
       </Modal>
 
-      {/* Thanh hành động */}
+      {/* Footer */}
       <View style={styles.footer}>
         <Pressable style={[styles.button, styles.backButton]} onPress={() => navigation.goBack()}>
           <Text style={styles.buttonText}>Quay lại</Text>
         </Pressable>
-
         <Pressable
           style={[styles.button, styles.confirmButton, isSubmitting && { opacity: 0.6 }]}
           onPress={handleConfirmOrder}
@@ -169,10 +198,9 @@ const CheckoutScreen = () => {
       </View>
     </View>
   );
-};
+}
 
-export default CheckoutScreen;
-
+// ================== STYLES ==================
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fafafa' },
   content: { padding: 16 },
@@ -186,9 +214,8 @@ const styles = StyleSheet.create({
   },
   itemName: { fontSize: 16, fontWeight: '600', color: '#333' },
   itemQuantity: { fontSize: 13, color: '#777' },
+  itemSubInfo: { fontSize: 12, color: '#666', fontStyle: 'italic' },
   itemPrice: { fontSize: 15, fontWeight: '600', color: '#e11d48' },
-
-  // 🗒️ Ghi chú
   noteButton: {
     marginTop: 16,
     backgroundColor: '#fff',
@@ -199,7 +226,6 @@ const styles = StyleSheet.create({
   },
   noteButtonLabel: { fontWeight: '600', color: '#007AFF', marginBottom: 4 },
   noteButtonValue: { color: '#333', fontStyle: 'italic' },
-
   totalRow: {
     marginTop: 16,
     flexDirection: 'row',
@@ -210,7 +236,6 @@ const styles = StyleSheet.create({
   },
   totalLabel: { fontSize: 16, fontWeight: '600', color: '#222' },
   totalValue: { fontSize: 18, fontWeight: '700', color: '#16a34a' },
-
   footer: {
     flexDirection: 'row',
     borderTopWidth: 1,
@@ -228,8 +253,6 @@ const styles = StyleSheet.create({
   backButton: { backgroundColor: 'red', marginRight: 8 },
   confirmButton: { backgroundColor: '#2563eb' },
   buttonText: { color: '#fff', fontWeight: '600' },
-
-  // 🔹 Modal
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',

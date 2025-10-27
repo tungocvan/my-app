@@ -14,7 +14,7 @@ const MedicineStack = () => (
     <CustomStackNavigator.Screen
       name="MedicineDetail"
       component={MedicineDetailScreen}
-      title="MedicineDetailScreen"
+      title="Chi tiết sản phẩm"
       options={{ showLogout: false, showMenu: false, showBack: true }}
     />
   </CustomStackNavigator>

@@ -23,7 +23,7 @@ const cartSlice = createSlice({
 
       // Cập nhật tổng
       state.totalQuantity = state.items.reduce((sum, i) => sum + i.quantity, 0);
-      state.totalPrice = state.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+      state.totalPrice = state.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     },
 
     removeFromCart: (state, action) => {
@@ -31,7 +31,7 @@ const cartSlice = createSlice({
       state.items = state.items.filter((item) => item.id !== id);
 
       state.totalQuantity = state.items.reduce((sum, i) => sum + i.quantity, 0);
-      state.totalPrice = state.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+      state.totalPrice = state.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     },
 
     clearCart: (state) => {
