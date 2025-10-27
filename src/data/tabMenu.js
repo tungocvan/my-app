@@ -13,6 +13,7 @@ import MedicineStack from '../navigation/stacks/MedicineStack';
 import QuickOrderStack from '../navigation/stacks/QuickOrderStack';
 import AlertStack from '../navigation/stacks/AlertStack';
 import ProductStack from '../navigation/stacks/ProductStack';
+import UtilityStack from '../navigation/stacks/UtilityStack';
 
 const tabMenu = [
   {
@@ -35,10 +36,17 @@ const tabMenu = [
     hidden: false,
   },
   {
+    name: 'UtilityTab',
+    label: 'Tiện ích',
+    icon: { active: 'gift-outline', inactive: 'gift-outline' },
+    component: UtilityStack,
+  },
+  {
     name: 'DealsTab',
     label: 'Khuyến Mãi',
     icon: { active: 'gift-outline', inactive: 'gift-outline' },
     component: DealsStack,
+    hidden: true,
   },
   {
     name: 'AboutTab',

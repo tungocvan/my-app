@@ -1,0 +1,31 @@
+diff --git a/src/data/tabMenu.js b/src/data/tabMenu.js
+index bef6993..2afdaaa 100644
+--- a/src/data/tabMenu.js
++++ b/src/data/tabMenu.js
+@@ -13,6 +13,7 @@ import MedicineStack from '../navigation/stacks/MedicineStack';
+ import QuickOrderStack from '../navigation/stacks/QuickOrderStack';
+ import AlertStack from '../navigation/stacks/AlertStack';
+ import ProductStack from '../navigation/stacks/ProductStack';
++import UtilityStack from '../navigation/stacks/UtilityStack';
+ 
+ const tabMenu = [
+   {
+@@ -34,11 +35,18 @@ const tabMenu = [
+     component: MedicineStack,
+     hidden: false,
+   },
++  {
++    name: 'UtilityTab',
++    label: 'Tiện ích',
++    icon: { active: 'gift-outline', inactive: 'gift-outline' },
++    component: UtilityStack,
++  },
+   {
+     name: 'DealsTab',
+     label: 'Khuyến Mãi',
+     icon: { active: 'gift-outline', inactive: 'gift-outline' },
+     component: DealsStack,
++    hidden: true,
+   },
+   {
+     name: 'AboutTab',
