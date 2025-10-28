@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import AppButtons from '../components/AppButtons';
 const UtilityScreen = () => {
   const buttonList = [
-    { name: 'Lập bảng giá', icon: 'pricetag-outline', screen: 'BanggiaScreen' },
+    { name: 'Lập bảng giá', icon: 'pricetag-outline', screen: 'BanggiaTab' },
     { name: 'Phiếu đề xuất', icon: 'document-text-outline', screen: 'PhieudexuatScreen' },
     { name: 'Giao việc', icon: 'briefcase-outline', screen: 'GiaoviecScreen' },
     { name: 'Tra cứu thuốc', icon: 'medkit-outline', screen: 'TracuuthuocScreen' },

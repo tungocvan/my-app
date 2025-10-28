@@ -20,6 +20,7 @@ const URLS = {
   MEDICINE_GROUPS: `${BASE_URL}/categories/nhom-thuoc`,
   ORDERS: `${BASE_URL}/orders`,
   VERIFY: `${BASE_URL}/auth/google/verify`,
+  TAOBANGGIA: `${BASE_URL}/bang-bao-gia`,
   // Thêm các url khác ở đây
 };
 
@@ -39,6 +40,7 @@ export const {
   MEDICINE_GROUPS,
   ORDERS,
   VERIFY,
+  TAOBANGGIA,
 } = URLS;
 
 // Export toàn bộ object

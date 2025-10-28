@@ -14,6 +14,7 @@ import QuickOrderStack from '../navigation/stacks/QuickOrderStack';
 import AlertStack from '../navigation/stacks/AlertStack';
 import ProductStack from '../navigation/stacks/ProductStack';
 import UtilityStack from '../navigation/stacks/UtilityStack';
+import BanggiaStack from '../navigation/stacks/BanggiaStack';
 
 const tabMenu = [
   {
@@ -40,6 +41,13 @@ const tabMenu = [
     label: 'Tiện ích',
     icon: { active: 'gift-outline', inactive: 'gift-outline' },
     component: UtilityStack,
+  },
+  {
+    name: 'BanggiaTab',
+    label: 'Bảng báo giá',
+    icon: { active: 'gift-outline', inactive: 'gift-outline' },
+    component: BanggiaStack,
+    hidden: true,
   },
   {
     name: 'DealsTab',
