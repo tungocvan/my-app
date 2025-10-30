@@ -6,6 +6,7 @@ import * as Print from 'expo-print';
 import * as Linking from 'expo-linking';
 import * as Clipboard from 'expo-clipboard';
 import { Ionicons } from '@expo/vector-icons';
+import { BASE_URL_IMG } from '../data/url';
 
 const OrderPDFActions = ({
   pdfUrl,
@@ -16,11 +17,12 @@ const OrderPDFActions = ({
   showCopy = true,
 }) => {
   const [loading, setLoading] = React.useState(false);
+  const urlPdf = BASE_URL_IMG + '/' + pdfUrl;
 
   // 🟩 Mở PDF trên trình duyệt
   const openPDF = async () => {
     try {
-      await Linking.openURL(pdfUrl);
+      await Linking.openURL(urlPdf);
     } catch (error) {
       Alert.alert('❌ Lỗi', 'Không thể mở PDF.');
     }
@@ -65,16 +67,53 @@ const OrderPDFActions = ({
   const sharePDF = async () => {
     try {
       setLoading(true);
-      const fileName = pdfUrl.split('/').pop() || 'order.pdf';
+      const fileName = urlPdf.split('/').pop() || 'order.pdf';
       const fileUri = FileSystem.documentDirectory + fileName;
 
+      // console.log('🔹 Bắt đầu tải:', urlPdf);
+
+      // Xóa file cũ (nếu có)
       const fileInfo = await FileSystem.getInfoAsync(fileUri);
-      if (!fileInfo.exists) {
-        await FileSystem.downloadAsync(pdfUrl, fileUri);
+      if (fileInfo.exists) {
+        await FileSystem.deleteAsync(fileUri, { idempotent: true });
       }
 
+      // 🧠 Dùng fetch để chắc chắn lấy đúng PDF binary
+      const response = await fetch(urlPdf);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const contentType = response.headers.get('Content-Type');
+      if (!contentType?.includes('pdf')) {
+        throw new Error('Không phải file PDF hợp lệ');
+      }
+
+      const blob = await response.blob();
+      const reader = new FileReader();
+
+      const base64Data = await new Promise((resolve, reject) => {
+        reader.onerror = () => reject('❌ Lỗi đọc blob');
+        reader.onloadend = () => {
+          const base64 = reader.result.split(',')[1];
+          resolve(base64);
+        };
+        reader.readAsDataURL(blob);
+      });
+
+      // 📝 Lưu file vào bộ nhớ app
+      await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      //console.log('✅ File PDF đã lưu:', fileUri);
+
+      // 🟢 Chia sẻ
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri);
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'application/pdf',
+          dialogTitle: 'Chia sẻ PDF',
+        });
       } else {
         Alert.alert('⚠️ Thiết bị không hỗ trợ chia sẻ file.');
       }
@@ -89,7 +128,7 @@ const OrderPDFActions = ({
   // 🟥 In PDF
   const printPDF = async () => {
     try {
-      await Print.printAsync({ uri: pdfUrl });
+      await Print.printAsync({ uri: urlPdf });
     } catch (error) {
       // Alert.alert('❌ Lỗi', 'Không thể in PDF.');
     }
@@ -98,7 +137,8 @@ const OrderPDFActions = ({
   // 📋 Sao chép link
   const copyLink = async () => {
     try {
-      await Clipboard.setStringAsync(pdfUrl);
+      //console.log(BASE_URL_IMG + '/' + pdfUrl);
+      await Clipboard.setStringAsync(urlPdf);
       Alert.alert('✅ Đã sao chép', 'Link tải về đã được sao chép vào clipboard.');
     } catch (error) {
       Alert.alert('❌ Lỗi', 'Không thể sao chép link.');
