@@ -35,7 +35,7 @@ const BackButton = ({ color = '#007AFF', size = 24 }) => {
 
 const OrderDetailScreen = ({ route, navigation }) => {
   const { user } = useSelector((state) => state.user);
-  const isAdmin = user?.is_admin === 1;
+  const isAdmin = user?.is_admin === -1;
   const { order } = route.params;
   const [orderData, setOrderData] = useState(order);
   const [details, setDetails] = useState(orderData.order_detail);
@@ -201,8 +201,11 @@ const OrderDetailScreen = ({ route, navigation }) => {
                 setLoadingUpdate(true);
 
                 const noteField = isAdmin ? 'admin_note' : 'order_note';
-                const statusField = isAdmin ? 'confirmed' : 'pending';
 
+                const statusField = isAdmin ? 'confirmed' : 'pending';
+                // console.log('isAdmin:', isAdmin);
+                // console.log('noteField:', noteField);
+                // console.log('statusField:', statusField);
                 const payload = {
                   order_id: orderData.id,
                   email: orderData.email,
@@ -213,7 +216,7 @@ const OrderDetailScreen = ({ route, navigation }) => {
                 };
 
                 try {
-                  console.log('payload:', payload);
+                  //console.log('payload:', payload);
                   const res = await axiosClient.post(`${ORDERS}/update-item`, payload);
                   if (res.data.success) {
                     Alert.alert('✅ Thành công', res.data.message || 'Đơn hàng đã được xác nhận.');
