@@ -213,6 +213,7 @@ const OrderDetailScreen = ({ route, navigation }) => {
                 };
 
                 try {
+                  console.log('payload:', payload);
                   const res = await axiosClient.post(`${ORDERS}/update-item`, payload);
                   if (res.data.success) {
                     Alert.alert('✅ Thành công', res.data.message || 'Đơn hàng đã được xác nhận.');
