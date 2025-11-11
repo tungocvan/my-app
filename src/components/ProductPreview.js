@@ -61,6 +61,7 @@ const ProductItem = ({ item }) => {
         id: item.id,
         name: item.ten_biet_duoc,
         dvt: item.don_vi_tinh,
+        quycach: item.quy_cach_dong_goi,
         image: item.link_hinh_anh,
         // chọn giá: don_gia nếu có, ngược lại lấy gia_ke_khai
         price:

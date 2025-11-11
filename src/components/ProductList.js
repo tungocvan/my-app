@@ -26,7 +26,7 @@ const ProductList = () => {
       // ✅ Mảng sản phẩm thực tế
       const items = response.data?.data?.data || [];
 
-      console.log('📦 Tổng sản phẩm:', items.length);
+      //console.log('📦 Tổng sản phẩm:', items.length);
       //console.log('📦 Tổng sản phẩm:', items[0]);
       setProducts(items);
     } catch (err) {

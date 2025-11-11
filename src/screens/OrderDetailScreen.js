@@ -91,7 +91,8 @@ const OrderDetailScreen = () => {
       <View style={{ flex: 3 }}>
         <Text style={styles.detailTitle}>{item.title}</Text>
         <Text style={{ color: '#555', fontSize: 12 }}>
-          {item.so_lo} | HSD: {item.han_dung} | {item.quy_cach}
+          Số lô {item.so_lo} | HSD: {new Date(item.han_dung).toISOString().split('T')[0]}|{' '}
+          {item.quy_cach}
         </Text>
       </View>
       <Text style={styles.detailQty}>x{item.quantity}</Text>

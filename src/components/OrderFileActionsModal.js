@@ -1,12 +1,39 @@
-import React from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import OrderFileActions from './OrderFileActions';
 
 export default function OrderFileActionsModal({ visible, onClose, item, navigation }) {
+  useEffect(() => {
+    if (!visible || !item) return;
+
+    const { pdf_path, file_path } = item;
+
+    // Nếu mở modal lên mà chưa có file thì alert 1 lần
+    if (!pdf_path && !file_path) {
+      Alert.alert(
+        'Chưa có file',
+        'File PDF/Excel chưa được tạo xong. Hệ thống sẽ quay lại danh sách.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              onClose();
+              navigation.replace('BanggiaListScreen');
+            },
+          },
+        ],
+        { cancelable: false },
+      );
+    }
+  }, [visible, item]);
+
   if (!item) return null;
 
   const { pdf_path, file_path } = item;
+
+  // Nếu không có file → không render modal nữa (alert đã xử lý)
+  if (!pdf_path && !file_path) return null;
 
   return (
     <Modal visible={visible} transparent animationType="slide">
@@ -14,7 +41,6 @@ export default function OrderFileActionsModal({ visible, onClose, item, navigati
         <View style={styles.modalBox}>
           <Text style={styles.title}>Tùy chọn bảng báo giá</Text>
 
-          {/* ✅ Xem chi tiết */}
           <TouchableOpacity
             style={styles.actionBtn}
             onPress={() => {
@@ -26,19 +52,11 @@ export default function OrderFileActionsModal({ visible, onClose, item, navigati
             <Text style={styles.btnText}>Xem chi tiết</Text>
           </TouchableOpacity>
 
-          {/* ✅ PDF Actions */}
           {pdf_path && <OrderFileActions title="File PDF" fileUrl={pdf_path} />}
-
-          {/* ✅ Excel Actions */}
           {file_path && (
             <OrderFileActions title="File Excel" fileUrl={file_path} showPrint={false} />
           )}
 
-          {!pdf_path && !file_path && (
-            <Text style={{ marginTop: 10, color: '#666' }}>❌ Chưa có file xuất.</Text>
-          )}
-
-          {/* Đóng modal */}
           <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
             <Text style={{ color: '#fff', fontWeight: '600' }}>Đóng</Text>
           </TouchableOpacity>

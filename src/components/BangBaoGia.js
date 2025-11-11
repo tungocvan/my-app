@@ -23,10 +23,10 @@ export default function BangBaoGia({ navigation }) {
 
   // MODAL
   const [modalVisible, setModalVisible] = useState(false);
-  const [tenKhachHang, setTenKhachHang] = useState('');
+  const [tenKhachHang, setTenKhachHang] = useState('QUÝ KHÁCH HÀNG');
   const [ghiChu, setGhiChu] = useState('');
-  const [tieuDe, setTieuDe] = useState('');
-  const [nguoiDuyet, setNguoiDuyet] = useState('');
+  const [tieuDe, setTieuDe] = useState('BẢNG BÁO GIÁ');
+  const [nguoiDuyet, setNguoiDuyet] = useState('Đậu Xuân Hoàng');
 
   const commonFields = {
     fields: ['id', 'ten_biet_duoc', 'don_gia', 'don_vi_tinh', 'quy_cach_dong_goi', 'link_hinh_anh'],
@@ -99,11 +99,12 @@ export default function BangBaoGia({ navigation }) {
       };
 
       const response = await axiosClient.post(TAO_BANG_GIA, payload);
-      console.log('Kết quả:', response.data);
+      //console.log('Kết quả:', response.data);
 
       Alert.alert('Thành công', '✅ Bảng báo giá đã được tạo!');
       setModalVisible(false);
       setSelectedItems([]);
+      navigation.navigate('BanggiaListScreen');
     } catch (error) {
       console.log(error);
       Alert.alert('Lỗi', 'Không thể tạo bảng giá!');

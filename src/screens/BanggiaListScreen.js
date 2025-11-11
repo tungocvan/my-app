@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Modal,
   RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import axiosClient from '../api/axiosClient';
 import { BANGGIA_LIST } from '../data/url';
 import { Ionicons } from '@expo/vector-icons';
@@ -36,9 +37,11 @@ export default function BanggiaListScreen({ navigation }) {
     }
   };
 
-  useEffect(() => {
-    fetchList();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchList();
+    }, []),
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -52,16 +55,10 @@ export default function BanggiaListScreen({ navigation }) {
   };
 
   const renderItem = ({ item }) => {
-    const totalProducts = Array.isArray(item.product_ids)
-      ? item.product_ids.length
-      : 0;
+    const totalProducts = Array.isArray(item.product_ids) ? item.product_ids.length : 0;
 
     return (
-      <TouchableOpacity
-        style={styles.card}
-        activeOpacity={0.8}
-        onPress={() => openModal(item)}
-      >
+      <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => openModal(item)}>
         <View style={{ flex: 1 }}>
           <Text style={styles.code}>{item.ma_so}</Text>
           <Text style={styles.name}>{item.ten_khach_hang}</Text>
@@ -70,8 +67,7 @@ export default function BanggiaListScreen({ navigation }) {
           </Text>
 
           <Text style={styles.meta}>
-            {totalProducts} sản phẩm •{' '}
-            {new Date(item.created_at).toLocaleDateString('vi-VN')}
+            {totalProducts} sản phẩm • {new Date(item.created_at).toLocaleDateString('vi-VN')}
           </Text>
         </View>
 
@@ -107,9 +103,7 @@ export default function BanggiaListScreen({ navigation }) {
         data={list}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         contentContainerStyle={{ padding: 10 }}
       />
 
