@@ -10,48 +10,34 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import axiosClient from '../api/axiosClient';
-import { USER_OPTIONS } from '../data/url';
+import { getUserById } from '../redux/slices/userSlice';
 
 const ProfileScreen = () => {
-  const user = useSelector((state) => state.user.user);
+  const user_id = useSelector((state) => state.user.user_id);
+  const dispatch = useDispatch();
   const navigation = useNavigation();
-  const [userInfo, setUserInfo] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
-      //console.log('user_Id:', user.id);
-      if (user?.id) {
-        fetchUserInfo(user.id);
+      console.log('user_id :', user_id);
+      if (user_id) {
+        fetchUserInfo();
       }
-    }, [user]),
+    }, []),
   );
 
-  const fetchUserInfo = async (userId) => {
+  const fetchUserInfo = async () => {
     setLoading(true);
-    try {
-      const res = await axiosClient.get(`${USER_OPTIONS}/${userId}`);
-      //console.log('user:', res.data.data);
-      if (res.data?.success) {
-        setUserInfo(res.data.data);
-      } else {
-        Alert.alert('⚠️ Lỗi', res.data?.message || 'Không lấy được thông tin người dùng');
-      }
-    } catch (error) {
-      // 3️⃣ Cập nhật bảng user_info
-      let extra_user = {
-        address: 'Vui lòng cập nhật địa chỉ',
-        phone: 'Vui lòng cập nhật số điện thoại',
-        email: user.email || '—',
-      };
-      const { data } = await axiosClient.post(`${USER_OPTIONS}/update`, {
-        user_id: userId,
-        user_info: { ...extra_user },
-      });
 
+    try {
+      const res = await dispatch(getUserById({ id: user_id }));
+      res?.payload && setUser(res.payload);
+      return;
+    } catch (error) {
       if (!data.success) Alert.alert('❌ Lỗi', 'Không thể tải thông tin hồ sơ');
     } finally {
       setLoading(false);
@@ -78,35 +64,35 @@ const ProfileScreen = () => {
       </View>
     );
   }
-
+  //console.log('shipping_info:', user);
   const avatar =
-    userInfo?.picture || user.avatar || 'https://adminlt.tungocvan.com/images/user.jpg';
+    user?.shipping_info?.picture || user?.avatar || 'https://adminlt.tungocvan.com/images/user.jpg';
 
   const infoList = [
     {
       icon: 'business-outline',
       label: 'Địa chỉ',
-      value: userInfo?.address || 'Chưa cập nhật',
+      value: user?.shipping_info?.address || 'Chưa cập nhật',
     },
     {
       icon: 'call-outline',
       label: 'Số điện thoại',
-      value: userInfo?.phone || 'Chưa cập nhật',
+      value: user?.shipping_info?.phone || 'Chưa cập nhật',
     },
     {
       icon: 'mail-outline',
       label: 'Email',
-      value: userInfo?.email || user.email,
+      value: user?.shipping_info?.email || user?.email || '',
     },
     {
       icon: 'globe-outline',
       label: 'Website',
-      value: userInfo?.website || 'Chưa có',
+      value: user?.shipping_info?.website || 'Chưa có',
     },
     {
       icon: 'briefcase-outline',
       label: 'Công ty',
-      value: userInfo?.company || 'Chưa có',
+      value: user?.shipping_info?.company_name || 'Chưa có',
     },
   ];
 
@@ -115,13 +101,13 @@ const ProfileScreen = () => {
       <View style={styles.card}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerText}>Hồ sơ người dùng #{user.id}</Text>
+          <Text style={styles.headerText}>Hồ sơ người dùng #{user_id}</Text>
         </View>
 
         {/* Body */}
         <View style={styles.body}>
           <View style={styles.leftCol}>
-            <Text style={styles.name}>{user.name || 'Người dùng'}</Text>
+            <Text style={styles.name}>{user?.name || 'Người dùng'}</Text>
 
             {/* Info list */}
             <View style={styles.infoList}>

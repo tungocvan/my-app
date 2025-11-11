@@ -26,7 +26,7 @@ const EditProfileScreen = () => {
   const dispatch = useDispatch(); // ✅ dùng ở đây
   const user = useSelector((state) => state.user.user);
 
-  const [userId, setUserId] = useState(user.id);
+  // const [userId, setUserId] = useState(user.id);
 
   // Thông tin cá nhân
   const [name, setName] = useState(user?.name);
@@ -45,98 +45,59 @@ const EditProfileScreen = () => {
 
   // Extra info
   const [extraInfo, setExtraInfo] = useState({
-    address: '',
-    phone: '',
-    email: email,
-    company: '',
-    website: '',
-    tax_code: '',
-    picture: DEFAULT_AVATAR,
+    address: user?.shipping_info?.address ?? '',
+    phone: user?.shipping_info?.phone ?? '',
+    email: user?.shipping_info?.email ?? '',
+    company: user?.shipping_info?.company ?? '',
+    website: user?.shipping_info?.website ?? '',
+    tax_code: user?.shipping_info?.tax_code ?? '',
+    picture: user?.shipping_info?.picture ?? DEFAULT_AVATAR,
   });
-
-  /** Fetch user info **/
-  useEffect(() => {
-    //console.log('edit id:', userId);
-    if (userId) fetchUserInfo();
-  }, [userId]);
-
-  const fetchUserInfo = async () => {
-    setLoadingExtra(true);
-    try {
-      const { data } = await axiosClient.get(`${USER_OPTIONS}/${userId}`);
-      if (data.success && data.data) {
-        const info = data.data;
-        //console.log('info:', info);
-
-        // Set thông tin cơ bản
-        setName(user?.name || '');
-        setEmail(info.email || '');
-        setPhone(info.phone || '');
-        setAddress(info.address || '');
-
-        // Set thông tin bổ sung
-        setExtraInfo((prev) => ({
-          ...prev,
-          address: info.address || '',
-          phone: info.phone || '',
-          email: info.email || '',
-          company: info.company || '',
-          website: info.website || '',
-          tax_code: info.tax_code || '',
-          picture: info.picture || DEFAULT_AVATAR,
-        }));
-      }
-    } catch (error) {
-      console.log('Lỗi khi load user-info:', error.response?.data || error.message);
-    } finally {
-      setLoadingExtra(false);
-    }
-  };
 
   /** Lưu thông tin **/
   const handleSave = async () => {
     try {
-      setLoading(true);
+      // ✅ Chặn submit khi đang loading
+      if (loading) return;
 
-      // 1️⃣ Chuẩn bị dữ liệu update
-      const userPayload = { name, email, password };
+      // ✅ Chuẩn bị dữ liệu gửi lên backend
+      let updatedData = {};
 
-      // 🔹 Nếu password rỗng => loại bỏ khỏi payload
-      if (!password || password.trim() === '') {
-        delete userPayload.password;
-      } else {
-        if (password !== confirmPassword) {
-          Alert.alert('❌ Lỗi', 'Mật khẩu mới không khớp!');
-          // reset confirmPassword / confirmPassword
-          setPassword(''); // ví dụ dùng useState
-          setConfirmPassword(''); // hoặc confirmPassword
-          return; // dừng hàm, **không gọi API**
-        }
-      }
-      //      console.log('userPayload:', userPayload);
-
-      // 2️⃣ Cập nhật user (Redux Thunk)
-      // const resultAction = await dispatch(updateUser({ id: userId, payload: userPayload }));
-      // const resultAction = await dispatch(updateUser({ id: userId, name, email }));
-      const resultAction = await dispatch(updateUser({ id: userId, ...userPayload }));
-      if (updateUser.rejected.match(resultAction)) {
-        throw new Error(resultAction.payload || 'Không thể cập nhật user.');
+      if (name && name.trim() !== '') {
+        updatedData.name = name.trim();
       }
 
-      // 3️⃣ Cập nhật bảng user_info
-      const { data } = await axiosClient.post(`${USER_OPTIONS}/update`, {
-        user_id: userId,
-        user_info: { name, email, phone, address, ...extraInfo },
-      });
+      if (password && password.trim() !== '') {
+        updatedData.password = password.trim();
+      }
 
-      if (!data.success) throw new Error(data.message || 'Cập nhật thông tin thất bại.');
+      // shipping_info luôn là object
+      if (extraInfo) {
+        updatedData.shipping_info = extraInfo;
+      }
 
-      Alert.alert('✅ Thành công', 'Thông tin đã được lưu!');
+      // ⛔ Nếu không có gì thay đổi
+      if (Object.keys(updatedData).length === 0) {
+        Alert.alert('Thông báo', 'Bạn chưa thay đổi thông tin nào.');
+        return;
+      }
+
+      // ✅ Gọi API update qua Redux
+      const updatedUser = await dispatch(
+        updateUser({
+          id: user.id,
+          updatedData: updatedData,
+        }),
+      ).unwrap(); // ✅ unwrap giúp bắt lỗi đúng từ rejectWithValue
+
+      // ✅ Nếu update thành công
+      Alert.alert('Thành công', 'Cập nhật tài khoản thành công!');
+
+      // ✅ (option) cập nhật UI
+      // setUserState(updatedUser);
     } catch (error) {
-      console.log('Update error:', error.response?.data || error.message);
-      Alert.alert('❌ Lỗi', error.message || 'Không thể lưu thông tin.');
-    } finally {
-      setLoading(false);
+      // ✅ Nhận đúng error từ rejectWithValue
+      Alert.alert('Lỗi', error || 'Cập nhật thất bại.');
     }
   };
 
@@ -209,9 +170,8 @@ const EditProfileScreen = () => {
       <Text style={styles.label}>Số điện thoại</Text>
       <TextInput
         style={styles.input}
-        value={phone}
+        value={extraInfo.phone}
         onChangeText={(val) => {
-          setPhone(val);
           setExtraInfo((prev) => ({ ...prev, phone: val }));
         }}
         keyboardType="phone-pad"
@@ -220,9 +180,8 @@ const EditProfileScreen = () => {
       <Text style={styles.label}>Địa chỉ</Text>
       <TextInput
         style={styles.input}
-        value={address}
+        value={extraInfo.address}
         onChangeText={(val) => {
-          setAddress(val);
           setExtraInfo((prev) => ({ ...prev, address: val }));
         }}
       />

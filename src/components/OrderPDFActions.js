@@ -11,7 +11,7 @@ import { BASE_URL_IMG } from '../data/url';
 const OrderPDFActions = ({
   pdfUrl,
   showOpen = true,
-  showDownload = true,
+  showDownload = false,
   showShare = true,
   showPrint = true,
   showCopy = true,

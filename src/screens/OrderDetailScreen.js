@@ -9,17 +9,15 @@ import {
   ActivityIndicator,
   Modal,
   TextInput,
-  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
-import axiosClient from '../api/axiosClient';
+import { useDispatch } from 'react-redux';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import CustomerInfoBox from '../components/CustomerInfoBox';
-import * as Clipboard from 'expo-clipboard';
 import OrderPDFActions from '../components/OrderPDFActions';
-
-import { USER_OPTIONS, ORDERS } from '../data/url';
+import axiosClient from '../api/axiosClient';
+import { ORDERS } from '../data/url';
+import { updateOrder } from '../redux/slices/cartSlice';
 
 const BackButton = ({ color = '#007AFF', size = 24 }) => {
   const navigation = useNavigation();
@@ -33,36 +31,33 @@ const BackButton = ({ color = '#007AFF', size = 24 }) => {
   );
 };
 
-const OrderDetailScreen = ({ route, navigation }) => {
-  const { user } = useSelector((state) => state.user);
-  const isAdmin = user?.is_admin === -1;
-  const { order } = route.params;
+const OrderDetailScreen = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const dispatch = useDispatch();
+  const { order } = route.params || {};
+
+  if (!order) return null; // Safety check
+
+  // States
   const [orderData, setOrderData] = useState(order);
-  const [details, setDetails] = useState(orderData.order_detail);
-  const [userInfo, setUserInfo] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [adminNote, setAdminNote] = useState('');
+  const [details, setDetails] = useState(order?.order_detail || []);
   const [loadingUpdate, setLoadingUpdate] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [adminNote, setAdminNote] = useState(order.admin_note || '');
 
   const isEditable = orderData.status === 'pending';
+  const isAdmin = orderData.user?.is_admin === 1;
 
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const res = await axiosClient.post(USER_OPTIONS, { email: orderData.email });
-        if (res.data.success) {
-          setUserInfo(res.data.data);
-        }
-      } catch (error) {
-        console.error('❌ Lỗi lấy thông tin user:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUserInfo();
-  }, [orderData.email]);
+  // Navigation header
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => <BackButton />,
+      title: `Đơn hàng #${orderData.id}`,
+    });
+  }, [navigation, orderData]);
 
+  // Update quantity
   const updateQuantity = (index, newQty) => {
     if (newQty < 1) return;
     const newDetails = [...details];
@@ -72,6 +67,7 @@ const OrderDetailScreen = ({ route, navigation }) => {
     setDetails(newDetails);
   };
 
+  // Remove item
   const removeItem = (index) => {
     Alert.alert('Xóa sản phẩm', 'Bạn có chắc chắn muốn xóa sản phẩm này?', [
       { text: 'Hủy', style: 'cancel' },
@@ -87,11 +83,17 @@ const OrderDetailScreen = ({ route, navigation }) => {
     ]);
   };
 
-  const totalAmount = details.reduce((sum, item) => sum + parseInt(item.total), 0);
+  const totalAmount = details.reduce((sum, item) => sum + parseFloat(item.total), 0);
 
+  // Render product item
   const renderDetailItem = ({ item, index }) => (
     <View style={styles.detailRow}>
-      <Text style={styles.detailTitle}>{item.title}</Text>
+      <View style={{ flex: 3 }}>
+        <Text style={styles.detailTitle}>{item.title}</Text>
+        <Text style={{ color: '#555', fontSize: 12 }}>
+          {item.so_lo} | HSD: {item.han_dung} | {item.quy_cach}
+        </Text>
+      </View>
       <Text style={styles.detailQty}>x{item.quantity}</Text>
       <Text style={styles.detailPrice}>{parseInt(item.total).toLocaleString('vi-VN')} ₫</Text>
 
@@ -111,14 +113,7 @@ const OrderDetailScreen = ({ route, navigation }) => {
     </View>
   );
 
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      headerLeft: () => <BackButton />,
-      title: `Đơn hàng #${orderData.id}`,
-    });
-  }, [navigation]);
-
-  // 🟣 Modal ghi chú admin
+  // Modal Admin Note
   const renderAdminNoteModal = () => (
     <Modal
       visible={showModal}
@@ -143,40 +138,35 @@ const OrderDetailScreen = ({ route, navigation }) => {
           />
 
           <View style={styles.modalActions}>
-            {/* 🔹 Nút Hủy đơn */}
+            {/* Hủy đơn */}
             <TouchableOpacity
               style={[styles.modalBtn, { backgroundColor: '#FF3B30' }]}
               disabled={loadingUpdate}
               onPress={async () => {
                 setLoadingUpdate(true);
-
                 const noteField = isAdmin ? 'admin_note' : 'order_note';
                 const payload = {
                   order_id: orderData.id,
-                  email: orderData.email,
-                  status: 'cancelled', // 🔹 trạng thái hủy
+                  status: 'cancelled',
                   order_detail: details,
-                  total: details.reduce((sum, item) => sum + parseFloat(item.total), 0),
-                  [noteField]: adminNote, // giữ ghi chú hiện tại
+                  total: totalAmount,
+                  [noteField]: adminNote,
                 };
-
                 try {
                   const res = await axiosClient.post(`${ORDERS}/update-item`, payload);
                   if (res.data.success) {
                     Alert.alert('✅ Thành công', 'Đơn hàng đã được hủy.');
-
                     setOrderData((prev) => ({
                       ...prev,
                       status: 'cancelled',
                       [noteField]: adminNote,
                     }));
-
                     setShowModal(false);
                   } else {
                     Alert.alert('❌ Lỗi', res.data.message || 'Không thể cập nhật trạng thái.');
                   }
                 } catch (error) {
-                  console.log('🔴 Lỗi khi hủy đơn:', error.response?.data || error);
+                  console.log('Lỗi hủy đơn:', error.response?.data || error);
                   Alert.alert('❌ Lỗi', 'Không thể hủy đơn.');
                 } finally {
                   setLoadingUpdate(false);
@@ -185,7 +175,8 @@ const OrderDetailScreen = ({ route, navigation }) => {
             >
               <Text style={{ color: '#fff', fontWeight: '600' }}>Hủy đơn</Text>
             </TouchableOpacity>
-            {/* Nút đóng modal */}
+
+            {/* Đóng modal */}
             <TouchableOpacity
               style={[styles.modalBtn, { backgroundColor: '#ccc' }]}
               onPress={() => setShowModal(false)}
@@ -193,7 +184,7 @@ const OrderDetailScreen = ({ route, navigation }) => {
               <Text>Hủy</Text>
             </TouchableOpacity>
 
-            {/* Nút xác nhận ghi chú */}
+            {/* Xác nhận */}
             <TouchableOpacity
               style={[styles.modalBtn, { backgroundColor: '#34C759' }]}
               disabled={loadingUpdate}
@@ -201,39 +192,35 @@ const OrderDetailScreen = ({ route, navigation }) => {
                 setLoadingUpdate(true);
 
                 const noteField = isAdmin ? 'admin_note' : 'order_note';
-
                 const statusField = isAdmin ? 'confirmed' : 'pending';
-                // console.log('isAdmin:', isAdmin);
-                // console.log('noteField:', noteField);
-                // console.log('statusField:', statusField);
+
                 const payload = {
-                  order_id: orderData.id,
                   email: orderData.email,
+                  customer_id: orderData.customer_id,
                   status: statusField,
                   order_detail: details,
-                  total: details.reduce((sum, item) => sum + parseFloat(item.total), 0),
+                  total: totalAmount,
                   [noteField]: adminNote,
                 };
 
                 try {
-                  //console.log('payload:', payload);
-                  const res = await axiosClient.post(`${ORDERS}/update-item`, payload);
-                  if (res.data.success) {
-                    Alert.alert('✅ Thành công', res.data.message || 'Đơn hàng đã được xác nhận.');
+                  // 🔹 Dùng dispatch thunk của Redux
+                  const res = await dispatch(updateOrder({ id: orderData.id, payload })).unwrap();
 
+                  if (res.success) {
+                    Alert.alert('✅ Thành công', res.message || 'Đơn hàng đã được xác nhận.');
                     setOrderData((prev) => ({
                       ...prev,
                       status: statusField,
                       [noteField]: adminNote,
                     }));
-
                     setShowModal(false);
                   } else {
-                    Alert.alert('❌ Lỗi', res.data.message || 'Không thể cập nhật trạng thái.');
+                    Alert.alert('❌ Lỗi', res.message || 'Không thể cập nhật đơn hàng.');
                   }
-                } catch (error) {
-                  console.log('🔴 Lỗi khi cập nhật:', error.response?.data || error);
-                  Alert.alert('❌ Lỗi', 'Không thể cập nhật đơn hàng.');
+                } catch (err) {
+                  console.log('🔴 Lỗi khi xác nhận đơn:', err);
+                  Alert.alert('❌ Lỗi', 'Không thể xác nhận đơn hàng.');
                 } finally {
                   setLoadingUpdate(false);
                 }
@@ -249,14 +236,6 @@ const OrderDetailScreen = ({ route, navigation }) => {
     </Modal>
   );
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#007AFF" />
-      </View>
-    );
-  }
-
   return (
     <>
       {renderAdminNoteModal()}
@@ -264,29 +243,21 @@ const OrderDetailScreen = ({ route, navigation }) => {
       <FlatList
         ListHeaderComponent={
           <View style={styles.card}>
-            {userInfo && <CustomerInfoBox user={userInfo} />}
+            <CustomerInfoBox customer_id={orderData.customer_id} />
 
             <Text style={[styles.sectionTitle, { marginTop: 10 }]}>
               Thông tin đơn hàng #{orderData.id}
             </Text>
 
-            {/* 🔹 Link tải về (nếu đơn hàng đã xác nhận) */}
+            {/* Link PDF */}
             {orderData.status === 'confirmed' && orderData.link_download && (
               <View style={styles.orderInfo}>
-                <OrderPDFActions
-                  pdfUrl={orderData.link_download}
-                  showOpen={false}
-                  showDownload={false}
-                  showShare={true}
-                  showPrint={true} // Ẩn nút in
-                  showCopy={true}
-                />
+                <OrderPDFActions pdfUrl={orderData.link_download} showShare showPrint showCopy />
               </View>
             )}
 
             <View style={styles.orderInfo}>
               <Text style={styles.label}>Trạng thái:</Text>
-
               {orderData.status === 'pending' ? (
                 <TouchableOpacity style={styles.statusButton} onPress={() => setShowModal(true)}>
                   <Text style={{ color: '#fff', fontWeight: '600' }}>Chờ xử lý</Text>
@@ -311,15 +282,13 @@ const OrderDetailScreen = ({ route, navigation }) => {
               )}
             </View>
 
-            {/* 🟢 Ghi chú của khách hàng */}
-            <View style={styles.orderInfo}>
-              <Text style={styles.label}>Ghi chú khách:</Text>
-              <Text style={styles.noteText}>
-                {orderData.order_note ? orderData.order_note : '— Không có ghi chú —'}
-              </Text>
-            </View>
+            {orderData.order_note && (
+              <View style={styles.orderInfo}>
+                <Text style={styles.label}>Ghi chú khách:</Text>
+                <Text style={styles.noteText}>{orderData.order_note}</Text>
+              </View>
+            )}
 
-            {/* 🔸 Ghi chú của admin */}
             {orderData.admin_note && (
               <View style={styles.adminNoteBox}>
                 <Ionicons
@@ -359,6 +328,7 @@ const OrderDetailScreen = ({ route, navigation }) => {
 
 export default OrderDetailScreen;
 
+// Styles
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
@@ -382,6 +352,7 @@ const styles = StyleSheet.create({
   status: { fontWeight: '600', color: '#333' },
   statusPending: { color: '#ff9500' },
   statusConfirmed: { color: '#34C759' },
+  statusCancelled: { color: '#FF3B30' },
   date: { color: '#777' },
   detailHeader: { fontWeight: '600', fontSize: 16, marginBottom: 6 },
   detailRow: {
@@ -395,11 +366,7 @@ const styles = StyleSheet.create({
   detailTitle: { flex: 3, color: '#444' },
   detailQty: { flex: 1, textAlign: 'center', color: '#444' },
   detailPrice: { flex: 2, textAlign: 'right', fontWeight: '600', color: '#444' },
-  actionRow: {
-    flexDirection: 'row',
-    gap: 3,
-    marginLeft: 6,
-  },
+  actionRow: { flexDirection: 'row', gap: 3, marginLeft: 6 },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -416,31 +383,15 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 6,
   },
-  noteText: {
-    flex: 1,
-    textAlign: 'right',
-    color: '#555',
-    fontStyle: 'italic',
-    marginLeft: 8,
-  },
+  noteText: { flex: 1, textAlign: 'right', color: '#555', fontStyle: 'italic', marginLeft: 8 },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modalBox: {
-    width: '85%',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 10,
-    color: '#007AFF',
-  },
+  modalBox: { width: '85%', backgroundColor: '#fff', borderRadius: 12, padding: 16 },
+  modalTitle: { fontSize: 16, fontWeight: '700', marginBottom: 10, color: '#007AFF' },
   inputNote: {
     borderWidth: 1,
     borderColor: '#ddd',
@@ -450,17 +401,8 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     color: '#333',
   },
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 12,
-    gap: 10,
-  },
-  modalBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
+  modalActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12, gap: 10 },
+  modalBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
   adminNoteBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -474,15 +416,5 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 3,
   },
-  adminNoteText: {
-    flex: 1,
-    color: '#fff',
-    fontWeight: '600',
-    fontStyle: 'italic',
-    fontSize: 14,
-  },
-  statusCancelled: {
-    color: '#FF3B30', // đỏ
-    fontWeight: '700', // đậm
-  },
+  adminNoteText: { flex: 1, color: '#fff', fontWeight: '600', fontStyle: 'italic', fontSize: 14 },
 });

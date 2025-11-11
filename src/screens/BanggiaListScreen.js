@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 // import { useNavigation } from '@react-navigation/native';
 import axiosClient from '../api/axiosClient';
-import { TAOBANGGIA } from '../data/url';
+import { BANGGIA_LIST } from '../data/url';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function BanggiaListScreen({ navigation }) {
@@ -22,7 +22,7 @@ export default function BanggiaListScreen({ navigation }) {
   const fetchList = async () => {
     try {
       setLoading(true);
-      const res = await axiosClient.get(TAOBANGGIA);
+      const res = await axiosClient.get(BANGGIA_LIST);
       const json = res.data;
       if (json.success && Array.isArray(json.data)) {
         setList(json.data);

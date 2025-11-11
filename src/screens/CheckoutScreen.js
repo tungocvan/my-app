@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,82 +11,93 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
-import { clearCart } from '../redux/slices/cartSlice';
-import { createOrder } from '../api/orderApi';
+import { Picker } from '@react-native-picker/picker';
 import CustomerInfoBox from '../components/CustomerInfoBox';
+import { createOrder } from '../redux/slices/cartSlice';
+import { fetchUsers } from '../redux/slices/userSlice'; // nếu bạn có slice userList
 
-// 🧮 Hàm tách số và nhân quy cách (ví dụ: "Hộp 10 ống x 10ml" -> 10 * 10 = 100)
+// 🧮 Hàm tách số và nhân quy cách ("Hộp 10 ống x 10ml" -> 100)
 const extractQuyCachFactor = (quycach) => {
   if (!quycach) return 1;
   const numbers = quycach.match(/\d+/g);
-  if (!numbers || numbers.length === 0) return 1;
-  if (numbers.length === 1) return parseInt(numbers[0], 10);
+  if (!numbers?.length) return 1;
   return numbers.slice(0, 2).reduce((a, b) => a * b, 1);
 };
 
 export default function CheckoutScreen() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+
   const cartItems = useSelector((state) => state.cart.items);
   const { user } = useSelector((state) => state.user);
+  const customers = useSelector((state) => state.user.customers || []); // danh sách customer
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [orderNote, setOrderNote] = useState('');
   const [noteModalVisible, setNoteModalVisible] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ✅ Tính tổng tiền (tự động nhân theo quy cách)
+  // Fetch danh sách customer khi vào screen
+  useEffect(() => {
+    if (!customers.length) {
+      dispatch(fetchUsers()); // giả sử bạn có slice userList
+    }
+  }, [dispatch]);
+
+  // ✅ Tính tổng tiền
   const totalAmount = cartItems.reduce((sum, item) => {
-    const quyCachFactor = item.soluong_quycach
+    const factor = item.soluong_quycach
       ? Number(item.soluong_quycach)
       : extractQuyCachFactor(item.quycach);
-    return sum + item.price * item.quantity * quyCachFactor;
+    return sum + item.price * item.quantity * factor;
   }, 0);
 
+  // ✅ Tạo đơn hàng
   const handleConfirmOrder = async () => {
     if (cartItems.length === 0) {
       Alert.alert('Thông báo', 'Giỏ hàng của bạn đang trống.');
       return;
     }
 
+    if (!selectedCustomerId) {
+      setSelectedCustomerId(user.id);
+      Alert.alert('Thông báo', 'Bạn đã tự lên đơn cho chính mình.');
+      return;
+    }
+
     setIsSubmitting(true);
 
-    const order = {
+    const payload = {
       user_id: user?.id || null,
+      customer_id: selectedCustomerId,
       email: user?.email || 'guest@example.com',
-      orderDetail: cartItems.map((item) => {
-        const quyCachFactor = item.soluong_quycach
+      order_detail: cartItems.map((item) => {
+        const factor = item.soluong_quycach
           ? Number(item.soluong_quycach)
           : extractQuyCachFactor(item.quycach);
         return {
           product_id: item.id,
-          title: item.ten_biet_duoc || item.title || 'Không rõ tên',
-          price: item.price,
-          dvt: item.dvt || '',
-          quantity: Number(item.quantity) * quyCachFactor,
-          quy_cach: item.quycach || '',
-          total: item.price * item.quantity * quyCachFactor,
+          quantity: Number(item.quantity) * factor,
         };
       }),
-      total: totalAmount,
-      status: 'pending',
       order_note: orderNote,
     };
 
+    console.log('🔵 Payload:', payload);
+
     try {
-      await createOrder(order);
-      console.log('order:', order);
-      Alert.alert('🎉 Thành công', 'Đơn hàng của bạn đã được xác nhận!', [
-        {
-          text: 'OK',
-          onPress: () => {
-            dispatch(clearCart());
-            navigation.navigate('HomeTab');
-          },
-        },
-      ]);
-    } catch (error) {
-      console.error('❌ Lỗi khi tạo đơn hàng:', error.response?.data || error.message);
-      Alert.alert('Lỗi', 'Không thể tạo đơn hàng. Vui lòng thử lại.');
+      const res = await dispatch(createOrder(payload));
+
+      if (createOrder.fulfilled.match(res)) {
+        Alert.alert('🎉 Thành công', 'Đơn hàng đã được xác nhận!', [
+          { text: 'OK', onPress: () => navigation.navigate('HomeTab') },
+        ]);
+      } else {
+        Alert.alert('❌ Lỗi', 'Không thể tạo đơn hàng. Vui lòng thử lại.');
+      }
+    } catch (err) {
+      console.error('❌ Lỗi khi tạo đơn:', err);
+      Alert.alert('❌ Lỗi', 'Đã xảy ra lỗi khi tạo đơn hàng.');
     } finally {
       setIsSubmitting(false);
     }
@@ -95,16 +106,34 @@ export default function CheckoutScreen() {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
+        {/* Thông tin khách hàng */}
         <CustomerInfoBox user={user?.extra_user} />
 
+        {/* Combobox chọn customer */}
+        <View style={{ marginVertical: 12 }}>
+          <Text style={{ marginBottom: 6, fontWeight: '600' }}>Chọn khách hàng:</Text>
+          <View style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8 }}>
+            <Picker
+              selectedValue={selectedCustomerId}
+              onValueChange={(itemValue) => setSelectedCustomerId(itemValue)}
+            >
+              <Picker.Item label="-- Chọn khách hàng --" value={null} />
+              {customers.map((c) => (
+                <Picker.Item key={c.id} label={c.username} value={c.id} />
+              ))}
+            </Picker>
+          </View>
+        </View>
+
+        {/* Danh sách sản phẩm */}
         {cartItems.length === 0 ? (
-          <Text style={styles.emptyText}>Giỏ hàng của bạn đang trống</Text>
+          <Text style={styles.emptyText}>Giỏ hàng đang trống</Text>
         ) : (
           cartItems.map((item) => {
-            const quyCachFactor = item.soluong_quycach
+            const factor = item.soluong_quycach
               ? Number(item.soluong_quycach)
               : extractQuyCachFactor(item.quycach);
-            const itemTotal = item.price * item.quantity * quyCachFactor;
+            const itemTotal = item.price * item.quantity * factor;
 
             return (
               <View key={item.id} style={styles.cartItem}>
@@ -112,13 +141,11 @@ export default function CheckoutScreen() {
                   <Text style={styles.itemName}>
                     {item.ten_biet_duoc || item.title || 'Không rõ tên'}
                   </Text>
-                  <Text style={styles.itemQuantity}>
-                    {item.quantity} x {item.quycach ? `(${item.quycach})` : ''}
+                  <Text style={styles.itemSubInfo}>
+                    {item.quantity} × {item.quycach || '—'}
                   </Text>
                   <Text style={styles.itemSubInfo}>
-                    Tổng {item.quantity * quyCachFactor} {item.dvt || ''}
-                    {' x '}
-                    {item.price.toLocaleString()}đ
+                    Tổng {item.quantity * factor} {item.dvt || ''} × {item.price.toLocaleString()}đ
                   </Text>
                 </View>
                 <Text style={styles.itemPrice}>{itemTotal.toLocaleString()}đ</Text>
@@ -131,9 +158,7 @@ export default function CheckoutScreen() {
         <Pressable style={styles.noteButton} onPress={() => setNoteModalVisible(true)}>
           <Text style={styles.noteButtonLabel}>📝 Ghi chú đơn hàng</Text>
           <Text style={styles.noteButtonValue}>
-            {orderNote
-              ? `"${orderNote}"`
-              : 'Nhấn để thêm ghi chú... (thay đổi thông tin nhận hàng, hẹn giờ giao...)'}
+            {orderNote ? `"${orderNote}"` : 'Nhấn để thêm ghi chú...'}
           </Text>
         </Pressable>
 
@@ -144,13 +169,8 @@ export default function CheckoutScreen() {
         </View>
       </ScrollView>
 
-      {/* Modal */}
-      <Modal
-        visible={noteModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setNoteModalVisible(false)}
-      >
+      {/* Modal ghi chú */}
+      <Modal visible={noteModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Nhập ghi chú đơn hàng</Text>
@@ -158,10 +178,8 @@ export default function CheckoutScreen() {
               style={styles.noteInput}
               value={orderNote}
               onChangeText={setOrderNote}
-              placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi giao..."
+              placeholder="Ví dụ: giao giờ hành chính..."
               multiline
-              numberOfLines={5}
-              textAlignVertical="top"
             />
             <View style={styles.modalActions}>
               <Pressable
@@ -186,10 +204,11 @@ export default function CheckoutScreen() {
         <Pressable style={[styles.button, styles.backButton]} onPress={() => navigation.goBack()}>
           <Text style={styles.buttonText}>Quay lại</Text>
         </Pressable>
+
         <Pressable
           style={[styles.button, styles.confirmButton, isSubmitting && { opacity: 0.6 }]}
           onPress={handleConfirmOrder}
-          disabled={isSubmitting || cartItems.length === 0}
+          disabled={isSubmitting}
         >
           <Text style={styles.buttonText}>
             {isSubmitting ? 'Đang xử lý...' : 'Xác nhận thanh toán'}
@@ -200,86 +219,77 @@ export default function CheckoutScreen() {
   );
 }
 
-// ================== STYLES ==================
+// ================= STYLES =================
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fafafa' },
   content: { padding: 16 },
-  emptyText: { textAlign: 'center', color: '#666', marginTop: 40 },
+  emptyText: { textAlign: 'center', marginTop: 40, color: '#666' },
   cartItem: {
     flexDirection: 'row',
-    alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderColor: '#eee',
   },
   itemName: { fontSize: 16, fontWeight: '600', color: '#333' },
-  itemQuantity: { fontSize: 13, color: '#777' },
-  itemSubInfo: { fontSize: 12, color: '#666', fontStyle: 'italic' },
-  itemPrice: { fontSize: 15, fontWeight: '600', color: '#e11d48' },
+  itemSubInfo: { fontSize: 13, color: '#777' },
+  itemPrice: { fontSize: 16, fontWeight: '700', color: '#dc2626' },
   noteButton: {
-    marginTop: 16,
-    backgroundColor: '#fff',
+    marginTop: 14,
+    padding: 12,
     borderRadius: 10,
-    padding: 14,
+    backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#ddd',
   },
-  noteButtonLabel: { fontWeight: '600', color: '#007AFF', marginBottom: 4 },
-  noteButtonValue: { color: '#333', fontStyle: 'italic' },
+  noteButtonLabel: { fontWeight: '600', color: '#007AFF' },
+  noteButtonValue: { color: '#333', marginTop: 4 },
   totalRow: {
-    marginTop: 16,
+    marginTop: 18,
     flexDirection: 'row',
     justifyContent: 'space-between',
     borderTopWidth: 1,
-    borderTopColor: '#ddd',
-    paddingTop: 10,
+    borderColor: '#ddd',
+    paddingTop: 12,
   },
-  totalLabel: { fontSize: 16, fontWeight: '600', color: '#222' },
-  totalValue: { fontSize: 18, fontWeight: '700', color: '#16a34a' },
+  totalLabel: { fontSize: 16, fontWeight: '700' },
+  totalValue: { fontSize: 18, fontWeight: '800', color: '#16a34a' },
   footer: {
     flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
     backgroundColor: '#fff',
     padding: 12,
-    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderColor: '#ddd',
   },
-  button: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  backButton: { backgroundColor: 'red', marginRight: 8 },
+  button: { flex: 1, padding: 12, borderRadius: 8, alignItems: 'center' },
+  backButton: { backgroundColor: '#ef4444', marginRight: 10 },
   confirmButton: { backgroundColor: '#2563eb' },
-  buttonText: { color: '#fff', fontWeight: '600' },
+  buttonText: { color: '#fff', fontWeight: '700' },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    padding: 16,
   },
   modalContainer: {
     backgroundColor: '#fff',
-    width: '90%',
     borderRadius: 12,
     padding: 16,
   },
-  modalTitle: { fontSize: 16, fontWeight: '700', color: '#007AFF', marginBottom: 10 },
+  modalTitle: { fontSize: 16, fontWeight: '700', color: '#007AFF' },
   noteInput: {
+    marginTop: 10,
+    minHeight: 100,
+    padding: 10,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 10,
-    minHeight: 100,
-    color: '#333',
-    marginBottom: 12,
   },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
-  modalButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 12,
+    gap: 10,
   },
-  modalButtonText: { color: '#fff', fontWeight: '600' },
+  modalButton: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8 },
+  modalButtonText: { color: '#fff', fontWeight: '700' },
 });
