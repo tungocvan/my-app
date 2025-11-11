@@ -50,7 +50,8 @@ export const fetchUsers = createAsyncThunk(
     try {
       const response = await axiosClient.post(`${USERS}`);
       if (response.data.success) {
-        return response.data.data;
+        // Trả về luôn mảng user
+        return response.data.data.data;
       } else {
         return rejectWithValue('Không lấy được danh sách users');
       }

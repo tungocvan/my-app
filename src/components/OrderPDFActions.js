@@ -70,7 +70,7 @@ const OrderPDFActions = ({
       const fileName = urlPdf.split('/').pop() || 'order.pdf';
       const fileUri = FileSystem.documentDirectory + fileName;
 
-      // console.log('🔹 Bắt đầu tải:', urlPdf);
+      console.log('🔹 Bắt đầu tải:', urlPdf);
 
       // Xóa file cũ (nếu có)
       const fileInfo = await FileSystem.getInfoAsync(fileUri);

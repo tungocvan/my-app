@@ -30,13 +30,13 @@ export default function CheckoutScreen() {
 
   const cartItems = useSelector((state) => state.cart.items);
   const { user } = useSelector((state) => state.user);
-  const customers = useSelector((state) => state.user.customers || []); // danh sách customer
+  const customers = useSelector((state) => state.user.customers || []);
 
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [orderNote, setOrderNote] = useState('');
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  //console.log('customers:', customers);
   // Fetch danh sách customer khi vào screen
   useEffect(() => {
     if (!customers.length) {
@@ -83,7 +83,7 @@ export default function CheckoutScreen() {
       order_note: orderNote,
     };
 
-    console.log('🔵 Payload:', payload);
+    // console.log('🔵 Payload:', payload);
 
     try {
       const res = await dispatch(createOrder(payload));
@@ -118,9 +118,8 @@ export default function CheckoutScreen() {
               onValueChange={(itemValue) => setSelectedCustomerId(itemValue)}
             >
               <Picker.Item label="-- Chọn khách hàng --" value={null} />
-              {customers.map((c) => (
-                <Picker.Item key={c.id} label={c.username} value={c.id} />
-              ))}
+              {Array.isArray(customers) &&
+                customers.map((c) => <Picker.Item key={c.id} label={c.username} value={c.id} />)}
             </Picker>
           </View>
         </View>
