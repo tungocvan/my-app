@@ -10,13 +10,18 @@ import {
   Modal,
   TextInput,
   Alert,
+  Dimensions,
 } from 'react-native';
+
+import Toast from 'react-native-toast-message';
+
 import { MEDICINES, BASE_URL_IMG, TAO_BANG_GIA } from '../data/url';
 import axiosClient from '../api/axiosClient';
 import { Ionicons } from '@expo/vector-icons';
 import SearchInput from './SearchInput';
 
 export default function BangBaoGia({ navigation }) {
+  const { height } = Dimensions.get('window');
   const [medicines, setMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -26,7 +31,7 @@ export default function BangBaoGia({ navigation }) {
   const [tenKhachHang, setTenKhachHang] = useState('QUÝ KHÁCH HÀNG');
   const [ghiChu, setGhiChu] = useState('');
   const [tieuDe, setTieuDe] = useState('BẢNG BÁO GIÁ');
-  const [nguoiDuyet, setNguoiDuyet] = useState('Đậu Xuân Hoàng');
+  const [nguoiDuyet, setNguoiDuyet] = useState('GIÁM ĐỐC');
 
   const commonFields = {
     fields: ['id', 'ten_biet_duoc', 'don_gia', 'don_vi_tinh', 'quy_cach_dong_goi', 'link_hinh_anh'],
@@ -101,10 +106,22 @@ export default function BangBaoGia({ navigation }) {
       const response = await axiosClient.post(TAO_BANG_GIA, payload);
       //console.log('Kết quả:', response.data);
 
-      Alert.alert('Thành công', '✅ Bảng báo giá đã được tạo!');
+      // Alert.alert('Thành công', '✅ Bảng báo giá đã được tạo!');
+      Toast.show({
+        type: 'success', // success | error | info
+        text1: '✅ Bảng báo giá đang được tạo... 🎉',
+        text2: 'Xin vui lòng chờ giây lát...',
+        position: 'top', // top | bottom
+        visibilityTime: 5000, // thời gian hiển thị (ms)
+        autoHide: true,
+        topOffset: height / 2 - 100, // đẩy toast xuống giữa
+      });
+
       setModalVisible(false);
-      setSelectedItems([]);
-      navigation.navigate('BanggiaListScreen');
+      setTimeout(() => {
+        setSelectedItems([]);
+        navigation.navigate('BanggiaListScreen');
+      }, 5000);
     } catch (error) {
       console.log(error);
       Alert.alert('Lỗi', 'Không thể tạo bảng giá!');

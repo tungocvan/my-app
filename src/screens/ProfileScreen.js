@@ -12,49 +12,52 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserById } from '../redux/slices/userSlice';
 
 const ProfileScreen = () => {
-  const user_id = useSelector((state) => state.user.user_id);
+  const reduxUserId = useSelector((state) => state.user.user_id);
   const dispatch = useDispatch();
   const navigation = useNavigation();
+
+  const [userId, setUserId] = useState(reduxUserId);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useFocusEffect(
-    useCallback(() => {
-      console.log('user_id :', user_id);
-      if (user_id) {
-        fetchUserInfo();
-      }
-    }, []),
-  );
-
-  const fetchUserInfo = async () => {
+  const fetchUserInfo = async (id) => {
     setLoading(true);
-
     try {
-      const res = await dispatch(getUserById({ id: user_id }));
-      res?.payload && setUser(res.payload);
-      return;
+      const res = await dispatch(getUserById({ id }));
+      if (res?.payload) setUser(res.payload);
     } catch (error) {
-      if (!data.success) Alert.alert('❌ Lỗi', 'Không thể tải thông tin hồ sơ');
+      Alert.alert('❌ Lỗi', 'Không thể tải thông tin hồ sơ');
     } finally {
       setLoading(false);
     }
   };
 
+  const getUserId = async () => {
+    if (!reduxUserId) {
+      const userJson = await AsyncStorage.getItem('user');
+      const storedUser = userJson ? JSON.parse(userJson) : null;
+      if (storedUser?.id) {
+        setUserId(storedUser.id);
+        fetchUserInfo(storedUser.id);
+      }
+    } else {
+      fetchUserInfo(userId);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      getUserId();
+    }, [userId]),
+  );
+
   const handleViewProfile = () => {
     navigation.navigate('EditProfileScreen');
   };
-
-  if (!user) {
-    return (
-      <View style={styles.centered}>
-        <Text>Chưa đăng nhập</Text>
-      </View>
-    );
-  }
 
   if (loading) {
     return (
@@ -64,52 +67,59 @@ const ProfileScreen = () => {
       </View>
     );
   }
-  //console.log('shipping_info:', user);
+
+  if (!user) {
+    return (
+      <View style={styles.centered}>
+        <Text>Chưa đăng nhập</Text>
+      </View>
+    );
+  }
+
   const avatar =
-    user?.shipping_info?.picture || user?.avatar || 'https://adminlt.tungocvan.com/images/user.jpg';
+    user?.options?.shipping_info?.picture ||
+    user?.avatar ||
+    'https://adminlt.tungocvan.com/images/user.jpg';
 
   const infoList = [
     {
       icon: 'business-outline',
       label: 'Địa chỉ',
-      value: user?.shipping_info?.address || 'Chưa cập nhật',
+      value: user?.options?.shipping_info?.address || 'Chưa cập nhật',
     },
     {
       icon: 'call-outline',
       label: 'Số điện thoại',
-      value: user?.shipping_info?.phone || 'Chưa cập nhật',
+      value: user?.options?.shipping_info?.phone || 'Chưa cập nhật',
     },
     {
       icon: 'mail-outline',
       label: 'Email',
-      value: user?.shipping_info?.email || user?.email || '',
+      value: user?.options?.shipping_info?.email || user?.email || '',
     },
     {
       icon: 'globe-outline',
       label: 'Website',
-      value: user?.shipping_info?.website || 'Chưa có',
+      value: user?.options?.shipping_info?.website || 'Chưa có',
     },
     {
       icon: 'briefcase-outline',
       label: 'Công ty',
-      value: user?.shipping_info?.company_name || 'Chưa có',
+      value: user?.options?.shipping_info?.company || 'Chưa có',
     },
   ];
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.card}>
-        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerText}>Hồ sơ người dùng #{user_id}</Text>
+          <Text style={styles.headerText}>Hồ sơ người dùng #{userId}</Text>
         </View>
 
-        {/* Body */}
         <View style={styles.body}>
           <View style={styles.leftCol}>
             <Text style={styles.name}>{user?.name || 'Người dùng'}</Text>
 
-            {/* Info list */}
             <View style={styles.infoList}>
               {infoList.map((item, index) => (
                 <View key={index} style={styles.infoItem}>
@@ -122,13 +132,11 @@ const ProfileScreen = () => {
             </View>
           </View>
 
-          {/* Avatar */}
           <View style={styles.rightCol}>
             <Image source={{ uri: avatar }} style={styles.avatar} />
           </View>
         </View>
 
-        {/* Footer */}
         <View style={styles.footer}>
           <TouchableOpacity style={[styles.btn, styles.btnPrimary]} onPress={handleViewProfile}>
             <Ionicons name="create-outline" size={18} color="#fff" />
