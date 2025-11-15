@@ -36,7 +36,7 @@ export default function OrderFileActionsModal({ visible, onClose, item, navigati
   if (!pdf_path && !file_path) return null;
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
+    <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
         <View style={styles.modalBox}>
           <Text style={styles.title}>Tùy chọn bảng báo giá</Text>

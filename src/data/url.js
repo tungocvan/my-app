@@ -22,6 +22,7 @@ const URLS = {
   VERIFY: `${BASE_URL}/auth/google/verify`,
   TAO_BANG_GIA: `${BASE_URL}/bang-gia`,
   BANGGIA_LIST: `${BASE_URL}/bang-bao-gia`,
+  SEND_MAIL: `${BASE_URL}/user/send-mail`,
 
   // Thêm các url khác ở đây
 };
@@ -44,6 +45,7 @@ export const {
   VERIFY,
   TAO_BANG_GIA,
   BANGGIA_LIST,
+  SEND_MAIL,
 } = URLS;
 
 // Export toàn bộ object
