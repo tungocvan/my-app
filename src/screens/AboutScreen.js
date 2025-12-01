@@ -7,7 +7,7 @@ const AboutScreen = () => {
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text style={{ fontSize: 18, marginBottom: 20 }}>Giới thiệu ứng dụng</Text>
+      <Text className="text-xl font-bold text-red-500">Giới thiệu ứng dụng</Text>
       <Button title="Quay lại" onPress={() => navigation.goBack()} />
     </View>
   );

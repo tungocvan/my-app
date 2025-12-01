@@ -5,7 +5,7 @@ import * as Font from 'expo-font';
 import Toast from 'react-native-toast-message';
 import { Provider, useSelector } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
-
+import '../global.css';
 import store from './redux/store';
 import { useAuthLoader } from './hooks/useAuthLoader';
 import AppNavigator from './navigation/AppNavigator';
