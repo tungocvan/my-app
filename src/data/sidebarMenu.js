@@ -21,4 +21,9 @@ export const sidebarMenu = [
     icon: 'settings-outline',
     route: 'SettingTab',
   },
+  {
+    label: 'Hướn dẫn sử dụng',
+    icon: 'settings-outline',
+    route: 'HelpTab',
+  },
 ];

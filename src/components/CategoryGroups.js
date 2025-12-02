@@ -1,59 +1,78 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-  FlatList,
-} from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 import axiosClient from '../api/axiosClient';
 
 export default function CategoryGroups({ apiUrl }) {
   const [groups, setGroups] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [parent, setParent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
   const navigation = useNavigation();
 
-  useEffect(() => {
-    const fetchGroups = async () => {
-      try {
-        const res = await axiosClient.post(apiUrl);
-        const json = res.data;
+  const fetchGroups = useCallback(async () => {
+    setLoading(true);
+    setError(false);
 
-        if (json?.data) {
-          setParent(json.data);
-          if (json.data.children) setGroups(json.data.children);
-          else if (Array.isArray(json.data)) setGroups(json.data);
-          else setGroups([json.data]);
-        }
-      } catch (err) {
-        console.log('Lỗi khi gọi API:', err);
-      } finally {
-        setLoading(false);
+    try {
+      const res = await axiosClient.post(apiUrl);
+      const json = res.data;
+
+      if (json?.data) {
+        setParent(json.data);
+
+        if (json.data.children) setGroups(json.data.children);
+        else if (Array.isArray(json.data)) setGroups(json.data);
+        else setGroups([json.data]);
       }
-    };
-    fetchGroups();
+    } catch (err) {
+      console.log('API Error:', err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }, [apiUrl]);
 
+  useEffect(() => {
+    fetchGroups();
+  }, [fetchGroups]);
+
+  // Loading
   if (loading)
     return (
-      <View style={styles.center}>
-        <ActivityIndicator />
+      <View className="flex items-center justify-center py-8">
+        <ActivityIndicator size="large" />
+        <Text className="text-gray-500 mt-2">Đang tải dữ liệu...</Text>
       </View>
     );
 
-  // 🧩 Chia danh sách thành 2 hàng
+  // Error
+  if (error)
+    return (
+      <View className="flex items-center justify-center py-10">
+        <Ionicons name="alert-circle" size={40} color="#ff4444" />
+        <Text className="text-red-500 font-semibold mt-3">Không thể tải dữ liệu</Text>
+
+        <TouchableOpacity
+          className="flex-row items-center bg-blue-500 mt-4 px-4 py-2 rounded-lg"
+          onPress={fetchGroups}
+        >
+          <Ionicons name="reload" size={18} color="#fff" />
+          <Text className="text-white ml-2 font-semibold">Thử lại</Text>
+        </TouchableOpacity>
+      </View>
+    );
+
+  // CHIA 2 HÀNG
   const row1 = groups.filter((_, i) => i % 2 === 0);
   const row2 = groups.filter((_, i) => i % 2 !== 0);
 
   const renderItem = (item) => (
     <TouchableOpacity
       key={item.id ?? item.slug}
-      style={styles.item}
+      className="w-24 mr-3"
       onPress={() =>
         navigation.navigate('ProductTab', {
           screen: 'ProductScreen',
@@ -62,159 +81,47 @@ export default function CategoryGroups({ apiUrl }) {
       }
       activeOpacity={0.85}
     >
-      <LinearGradient
-        colors={['#d1f7ff', '#f8e1ff']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.square}
-      >
-        <Ionicons name={item.icon || 'apps-outline'} size={26} color="#333" />
-        <Text style={styles.itemText} numberOfLines={2}>
+      <View className="bg-gray-100 rounded-2xl w-24 h-24 flex items-center justify-center shadow-sm">
+        <Ionicons name={item.icon || 'apps-outline'} size={28} color="#333" />
+        <Text className="text-[11px] text-gray-800 mt-1 text-center" numberOfLines={2}>
           {item.name}
         </Text>
-      </LinearGradient>
+      </View>
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.wrapper}>
-      {/* Tiêu đề nhóm thuốc có hiệu ứng nổi bật */}
+    <View className="mx-3 mt-3">
+      {/* Title */}
       {parent?.name && (
-        <LinearGradient
-          colors={['#a8edea', '#fed6e3']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.titleBadge}
-        >
-          <Text style={styles.title}>{parent.name}</Text>
-        </LinearGradient>
+        <Text className="text-[17px] font-bold text-gray-800 mb-2 p-2">{parent.name}</Text>
       )}
 
-      {/* Thẻ nhóm có viền gradient */}
-      <LinearGradient
-        colors={['#fdfbfb', '#ebedee']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.cardContainer}
-      >
-        <View style={styles.card}>
-          {/* Dòng 1 */}
-          <FlatList
-            data={row1}
-            horizontal
-            keyExtractor={(item) => String(item.id ?? item.slug ?? item.name)}
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => renderItem(item)}
-            contentContainerStyle={{ paddingHorizontal: 10 }}
-          />
+      <View className="bg-white rounded-2xl p-3 shadow-sm">
+        {/* Row 1 */}
+        <FlatList
+          data={row1}
+          horizontal
+          keyExtractor={(item) => String(item.id ?? item.slug ?? item.name)}
+          showsHorizontalScrollIndicator={false}
+          renderItem={({ item }) => renderItem(item)}
+          contentContainerStyle={{ paddingRight: 10, paddingBottom: 5 }}
+        />
 
-          {/* Dòng 2 */}
-          <FlatList
-            data={row2}
-            horizontal
-            keyExtractor={(item) => String(item.id ?? item.slug ?? item.name)}
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => renderItem(item)}
-            contentContainerStyle={{ paddingHorizontal: 10, marginTop: 10 }}
-          />
-        </View>
-      </LinearGradient>
+        {/* Row 2 */}
+        <FlatList
+          data={row2}
+          horizontal
+          keyExtractor={(item) => String(item.id ?? item.slug ?? item.name)}
+          showsHorizontalScrollIndicator={false}
+          renderItem={({ item }) => renderItem(item)}
+          contentContainerStyle={{
+            paddingRight: 10,
+            paddingBottom: 5,
+            marginTop: 12,
+          }}
+        />
+      </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    marginHorizontal: 12,
-    marginTop: 10,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 6,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    paddingVertical: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  center: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-  },
-  item: {
-    width: 90,
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  square: {
-    width: 90,
-    height: 90,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  itemText: {
-    fontSize: 11,
-    color: '#222',
-    textAlign: 'center',
-    marginTop: 6,
-  },
-  cardContainer: {
-    borderRadius: 18,
-    padding: 2, // viền gradient mảnh
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    paddingVertical: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.07,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  titleWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 8,
-    marginLeft: 2,
-  },
-  titleGradient: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-
-  titleBadge: {
-    alignSelf: 'flex-start',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#333',
-    textShadowColor: 'rgba(255, 255, 255, 0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-});

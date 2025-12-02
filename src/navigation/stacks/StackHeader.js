@@ -1,20 +1,19 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-// import LogoutButton from '../../components/LogoutButton';
+
 import CartIcon from '../../components/CartIcon';
 import AccountIcon from '../../components/AccountIcon';
 import BackButton from '../../components/BackButton';
 import AlertIcon from '../../components/AlertIcon';
+import HeaderSearchButton from '../../components/HeaderSearchButton';
 import { useSidebar } from '../../context/SidebarContext';
 import { HEADER } from '../../constants';
-import HeaderSearchButton from '../../components/HeaderSearchButton'; // 👉 import component bạn vừa tạo
 
 const StackHeader = ({
   title,
   showMenu,
-  // showLogout,
   isText = false,
   isSearch = false,
   isCart = false,
@@ -25,67 +24,65 @@ const StackHeader = ({
 }) => {
   const { setSidebarOpen } = useSidebar();
 
-  // Tùy chọn justifyContent
-  let justify = 'space-between';
-  // if (showMenu && !showLogout) justify = 'flex-start';
-  // if (!showMenu && showLogout) justify = 'flex-end';
-  // if (!showMenu && !showLogout) justify = 'center';
-
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={[styles.container, { justifyContent: justify }]}>
-        {/* Menu Left */}
-        {showBack && <BackButton />}
-        {showMenu ? (
-          <TouchableOpacity onPress={() => setSidebarOpen(true)} style={styles.leftButton}>
-            <Ionicons name="menu-outline" size={HEADER.ICON_SIZE} color={HEADER.ICON_COLOR} />
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.leftButton} />
-        )}
-        {/* Title hoặc Search Input */}
-        {isSearch ? (
-          <View style={{ flex: 1, marginHorizontal: 8 }}>
+    <SafeAreaView style={{ backgroundColor: HEADER.BG_COLOR }}>
+      <View
+        className={`
+          flex-row items-end px-3
+          h-[${HEADER.HEIGHT}px]
+          justify-between
+        `}
+        style={{ height: HEADER.HEIGHT, backgroundColor: HEADER.BG_COLOR }}
+      >
+        {/* Left section */}
+        <View className="w-10 items-center justify-center">
+          {showBack ? (
+            <BackButton />
+          ) : showMenu ? (
+            <TouchableOpacity
+              onPress={() => setSidebarOpen(true)}
+              className="items-center justify-center"
+            >
+              <Ionicons name="menu-outline" size={HEADER.ICON_SIZE} color={HEADER.ICON_COLOR} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+
+        {/* Center content */}
+        <View className="flex-1 mx-2">
+          {isSearch ? (
             <HeaderSearchButton
               placeholder="Tìm sản phẩm..."
               onPress={() => navigation.navigate('MedicineTab')}
             />
-          </View>
-        ) : (
-          title && <Text style={styles.title}>{title}</Text>
-        )}
-        {showAlert && <AlertIcon hanldePress={() => navigation.navigate('AlertTab')} />}
-        {isCart && <CartIcon hanldePress={() => navigation.navigate('CartTab')} />}
-        {showAccount && <AccountIcon hanldePress={() => navigation.navigate('ProfileTab')} />}
-        {/* Logout Right */}
-        {/* {showLogout ? <LogoutButton isText={isText} /> : <View style={{ width: 40 }} />} */}
+          ) : (
+            title && (
+              <Text
+                className="
+                  text-center text-[18px] font-semibold
+                  text-gray-900
+                "
+              >
+                {title}
+              </Text>
+            )
+          )}
+        </View>
+
+        {/* Right section */}
+        <View className="flex-row items-center">
+          {showAlert && <AlertIcon hanldePress={() => navigation.navigate('AlertTab')} />}
+
+          {isCart && <CartIcon hanldePress={() => navigation.navigate('CartTab')} />}
+
+          {showAccount && <AccountIcon hanldePress={() => navigation.navigate('ProfileTab')} />}
+
+          {/* Nếu không có icon nào, giữ kích thước đảm bảo layout cân đối */}
+          {!showAlert && !isCart && !showAccount && <View className="w-10" />}
+        </View>
       </View>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  safe: {
-    backgroundColor: HEADER.BG_COLOR,
-  },
-  container: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: 12,
-    height: HEADER.HEIGHT,
-  },
-  leftButton: {
-    width: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    flex: 1,
-    textAlign: 'center',
-    fontWeight: '600',
-    fontSize: 18,
-    color: HEADER.TITLE_COLOR,
-  },
-});
 
 export default StackHeader;

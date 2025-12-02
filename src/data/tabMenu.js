@@ -15,6 +15,7 @@ import AlertStack from '../navigation/stacks/AlertStack';
 import ProductStack from '../navigation/stacks/ProductStack';
 import UtilityStack from '../navigation/stacks/UtilityStack';
 import BanggiaStack from '../navigation/stacks/BanggiaStack';
+import HelpStack from '../navigation/stacks/HelpStack';
 
 const tabMenu = [
   {
@@ -110,6 +111,13 @@ const tabMenu = [
     label: 'Sản phẩm',
     icon: { active: 'notifications', inactive: 'notifications-outline' },
     component: ProductStack,
+    hidden: true,
+  },
+  {
+    name: 'HelpTab',
+    label: 'Hướng dẫn sử dụng',
+    icon: { active: 'notifications', inactive: 'notifications-outline' },
+    component: HelpStack,
     hidden: true,
   },
 ];
