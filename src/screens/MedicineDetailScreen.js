@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Image, ScrollView, ActivityIndicator } from 'react-native';
 import { BASE_URL_IMG, MEDICINES } from '../data/url';
 import axiosClient from '../api/axiosClient';
 
@@ -29,9 +29,7 @@ export default function MedicineDetailScreen({ route }) {
         });
 
         if (res.data?.success && res.data.data?.length > 0) {
-          setMedicine(res.data.data[0]); // lấy record đầu tiên
-        } else {
-          console.log('Không tìm thấy thuốc');
+          setMedicine(res.data.data[0]);
         }
       } catch (error) {
         console.error('Lỗi khi tải chi tiết thuốc:', error);
@@ -45,89 +43,63 @@ export default function MedicineDetailScreen({ route }) {
 
   if (loading) {
     return (
-      <View style={styles.center}>
+      <View className="flex-1 items-center justify-center">
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={{ marginTop: 10 }}>Đang tải thông tin thuốc...</Text>
+        <Text className="mt-3 text-gray-600">Đang tải thông tin thuốc...</Text>
       </View>
     );
   }
 
   if (!medicine) {
     return (
-      <View style={styles.center}>
-        <Text>Không tìm thấy thông tin thuốc.</Text>
+      <View className="flex-1 items-center justify-center">
+        <Text className="text-gray-600">Không tìm thấy thông tin thuốc.</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {medicine.link_hinh_anh ? (
-        <Image source={{ uri: `${BASE_URL_IMG}/${medicine.link_hinh_anh}` }} style={styles.image} />
-      ) : (
-        <View style={[styles.image, styles.noImage]}>
-          <Text style={{ color: '#999' }}>Không có hình ảnh</Text>
-        </View>
-      )}
+    <ScrollView className="flex-1 bg-white p-4">
+      <View className="w-full h-64 rounded-3xl bg-gray-100 items-center justify-center shadow-lg mb-6">
+        {medicine.link_hinh_anh ? (
+          <Image
+            source={{ uri: `${BASE_URL_IMG}/${medicine.link_hinh_anh}` }}
+            className="w-[92%] h-[92%] rounded-2xl"
+            resizeMode="contain"
+          />
+        ) : (
+          <Text className="text-gray-500">Không có hình ảnh</Text>
+        )}
+      </View>
 
-      <Text style={styles.name}>{medicine.ten_biet_duoc}</Text>
-      <Text style={styles.price}>
+      {/* Tên thuốc */}
+      <Text className="text-2xl font-bold text-gray-900">{medicine.ten_biet_duoc}</Text>
+
+      {/* Giá */}
+      <Text className="text-xl font-semibold text-blue-600 mt-1 mb-4">
         {medicine.don_gia ? `${medicine.don_gia.toLocaleString('vi-VN')} ₫` : 'Chưa có giá'}
       </Text>
 
-      <View style={styles.infoBox}>
-        <Text style={styles.label}>Hoạt chất:</Text>
-        <Text style={styles.value}>{medicine.ten_hoat_chat || '-'}</Text>
-
-        <Text style={styles.label}>Hàm lượng:</Text>
-        <Text style={styles.value}>{medicine.nong_do_ham_luong || '-'}</Text>
-
-        <Text style={styles.label}>Dạng bào chế:</Text>
-        <Text style={styles.value}>{medicine.dang_bao_che || '-'}</Text>
-
-        <Text style={styles.label}>Đường dùng:</Text>
-        <Text style={styles.value}>{medicine.duong_dung || '-'}</Text>
-
-        <Text style={styles.label}>Cơ sở sản xuất:</Text>
-        <Text style={styles.value}>{medicine.co_so_san_xuat || '-'}</Text>
-
-        <Text style={styles.label}>Nước sản xuất:</Text>
-        <Text style={styles.value}>{medicine.nuoc_san_xuat || '-'}</Text>
-
-        <Text style={styles.label}>Hạn dùng:</Text>
-        <Text style={styles.value}>{medicine.han_dung || '-'}</Text>
+      {/* Thông tin chi tiết */}
+      <View className="bg-gray-50 p-4 rounded-2xl shadow-sm space-y-4">
+        <InfoRow label="Hoạt chất" value={medicine.ten_hoat_chat} />
+        <InfoRow label="Hàm lượng" value={medicine.nong_do_ham_luong} />
+        <InfoRow label="Dạng bào chế" value={medicine.dang_bao_che} />
+        <InfoRow label="Đường dùng" value={medicine.duong_dung} />
+        <InfoRow label="Cơ sở sản xuất" value={medicine.co_so_san_xuat} />
+        <InfoRow label="Nước sản xuất" value={medicine.nuoc_san_xuat} />
+        <InfoRow label="Hạn dùng" value={medicine.han_dung} />
       </View>
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 15 },
-  image: {
-    width: '100%',
-    height: 200,
-    borderRadius: 12,
-    resizeMode: 'cover',
-  },
-  noImage: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f4f4f4',
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginTop: 12,
-    color: '#333',
-  },
-  price: {
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  infoBox: { marginTop: 10 },
-  label: { fontWeight: '600', marginTop: 8, color: '#555' },
-  value: { color: '#222', fontSize: 14 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-});
+/* Component con để gọn code */
+function InfoRow({ label, value }) {
+  return (
+    <View>
+      <Text className="text-gray-500 text-sm font-medium">{label}</Text>
+      <Text className="text-gray-900 text-base mt-0.5">{value || '-'}</Text>
+    </View>
+  );
+}

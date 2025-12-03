@@ -19,13 +19,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
     borderRadius: 10,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
     flex: 1,
+    marginTop: 6,
   },
   placeholder: {
     color: '#9ca3af',
-    fontSize: 16,
+    fontSize: 14,
   },
 });
 

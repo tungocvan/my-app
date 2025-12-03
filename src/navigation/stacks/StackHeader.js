@@ -49,7 +49,7 @@ const StackHeader = ({
         </View>
 
         {/* Center content */}
-        <View className="flex-1 mx-2">
+        <View className={`flex-1 mx-2 h-[${HEADER.HEIGHT}px]`}>
           {isSearch ? (
             <HeaderSearchButton
               placeholder="Tìm sản phẩm..."
@@ -57,14 +57,7 @@ const StackHeader = ({
             />
           ) : (
             title && (
-              <Text
-                className="
-                  text-center text-[18px] font-semibold
-                  text-gray-900
-                "
-              >
-                {title}
-              </Text>
+              <Text className={`text-center text-[20px] font-semibold text-white `}>{title}</Text>
             )
           )}
         </View>

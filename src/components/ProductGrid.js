@@ -99,7 +99,7 @@ const ProductItem = ({ item }) => {
       {/* Ảnh sản phẩm (bấm để xem chi tiết) */}
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => navigation.navigate('ProductDetail', { medicine: item })}
+        onPress={() => navigation.navigate('ProductDetail', { medicine: item.id })}
       >
         <Image
           source={{ uri: BASE_URL_IMG + '/' + item.link_hinh_anh }}
