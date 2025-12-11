@@ -3,48 +3,81 @@ import { View, TouchableOpacity, Text } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const CustomTabBar = ({ state, descriptors, navigation }) => {
+  if (!state || !descriptors || !navigation) {
+    return null;
+  }
+
   return (
-    <View className="flex-row bg-[#0a7f6f] border-t border-gray-200 h-20 items-center justify-around">
-      {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
-        const label =
-          options.tabBarLabel !== undefined
-            ? options.tabBarLabel
-            : options.title !== undefined
-              ? options.title
-              : route.name;
+    <View className="bg-[#0d1117] px-4 pb-6 pt-2">
+      <View className="flex-row bg-[#1a1a2e] rounded-3xl h-[70px] items-center justify-around px-2 shadow-lg shadow-black/50">
+        {state.routes.map((route, index) => {
+          const { options } = descriptors[route.key];
+          const label =
+            options.tabBarLabel !== undefined
+              ? options.tabBarLabel
+              : options.title !== undefined
+                ? options.title
+                : route.name;
 
-        const isFocused = state.index === index;
-        const iconName = isFocused ? options.tabBarIconActive : options.tabBarIconInactive;
+          const isFocused = state.index === index;
+          const iconName = isFocused ? options.tabBarIconActive : options.tabBarIconInactive;
 
-        const onPress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-          });
+          const onPress = () => {
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
 
-          if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
+
+          const onLongPress = () => {
+            navigation.emit({
+              type: 'tabLongPress',
+              target: route.key,
+            });
+          };
+
+          if (options.tabBarButton === null) {
+            return <View key={route.key} className="w-0 h-0" />;
           }
-        };
 
-        if (options.tabBarButton === null) {
-          return <View key={route.key} className="w-0 h-0" />;
-        }
+          return (
+            <TouchableOpacity
+              key={route.key}
+              onPress={onPress}
+              onLongPress={onLongPress}
+              accessibilityRole="button"
+              accessibilityState={isFocused ? { selected: true } : {}}
+              activeOpacity={0.7}
+              className="flex-1 items-center justify-center py-2 relative"
+            >
+              {isFocused && <View className="absolute inset-1 bg-emerald-500/20 rounded-2xl" />}
 
-        return (
-          <TouchableOpacity
-            key={route.key}
-            onPress={onPress}
-            className="flex-1 items-center justify-center"
-          >
-            <Ionicons name={iconName} size={24} color={isFocused ? '#ecf1f0' : '#7f8c8d'} />
-            <Text className={`text-xs mt-1 ${isFocused ? 'text-[#ecf1f0]' : 'text-white-500'}`}>
-              {label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+              <Ionicons
+                name={iconName}
+                size={isFocused ? 26 : 24}
+                color={isFocused ? '#10b981' : '#6b7280'}
+              />
+
+              <Text
+                className={`text-[10px] font-semibold mt-1 ${
+                  isFocused ? 'text-emerald-500' : 'text-gray-500'
+                }`}
+              >
+                {label}
+              </Text>
+
+              {isFocused && (
+                <View className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 };
