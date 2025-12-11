@@ -11,13 +11,13 @@ import {
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useDispatch } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import CustomerInfoBox from '../components/CustomerInfoBox';
 import OrderPDFActions from '../components/OrderPDFActions';
 import axiosClient from '../api/axiosClient';
 import { ORDERS } from '../data/url';
 import { updateOrder } from '../redux/slices/cartSlice';
+import { useSelector, useDispatch } from 'react-redux';
 
 const BackButton = ({ color = '#007AFF', size = 24 }) => {
   const navigation = useNavigation();
@@ -45,10 +45,11 @@ const OrderDetailScreen = () => {
   const [loadingUpdate, setLoadingUpdate] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [adminNote, setAdminNote] = useState(order.admin_note || '');
+  const user = useSelector((state) => state.user.user);
 
   const isEditable = orderData.status === 'pending';
-  const isAdmin = orderData.user?.is_admin === 1;
-
+  const isAdmin = user?.is_admin === 1;
+  console.log('user:', user);
   // Navigation header
   React.useLayoutEffect(() => {
     navigation.setOptions({
@@ -194,7 +195,7 @@ const OrderDetailScreen = () => {
 
                 const noteField = isAdmin ? 'admin_note' : 'order_note';
                 const statusField = isAdmin ? 'confirmed' : 'pending';
-
+                console.log('statusField:', statusField);
                 const payload = {
                   email: orderData.email,
                   customer_id: orderData.customer_id,
@@ -209,7 +210,7 @@ const OrderDetailScreen = () => {
                   const res = await dispatch(updateOrder({ id: orderData.id, payload })).unwrap();
 
                   if (res.success) {
-                    Alert.alert('✅ Thành công', res.message || 'Đơn hàng đã được xác nhận.');
+                    Alert.alert('✅ Thành công', res.message || 'Đơn hàng đã được xác nhận...');
                     setOrderData((prev) => ({
                       ...prev,
                       status: statusField,

@@ -56,8 +56,8 @@ const OrderScreen = () => {
       setLoading(true);
       setError(null);
 
-      const filterUser =
-        user && user.is_admin == 0 ? { is_admin: user.is_admin, email: user.email } : {};
+      //const filterUser = user && user.is_admin == 0 ? { is_admin: user.is_admin, email: user.email } : {};
+      const filterUser = user ? { email: user.email } : {};
 
       const response = await axiosClient.post(ORDERS, filterUser);
       const data = response.data.data || [];

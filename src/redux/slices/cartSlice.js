@@ -40,6 +40,7 @@ export const updateOrder = createAsyncThunk(
   'cart/updateOrder',
   async ({ id, payload }, { rejectWithValue }) => {
     try {
+      //console.log('payload:', payload);
       const res = await axiosClient.post(`${ORDERS}/${id}/update`, payload);
       return res.data;
     } catch (err) {
